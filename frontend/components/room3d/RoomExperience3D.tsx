@@ -10,8 +10,10 @@ import { useRoomStore } from "@/store/room";
 import { track } from "@/utils/analytics";
 import { RoomCanvas, type ViewMode } from "./RoomCanvas";
 
-function LoadingOverlay() {
-  const { active, progress } = useProgress();
+function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
+  const loader = useProgress();
+  const active = splatProgress !== undefined ? splatProgress < 1 : loader.active;
+  const progress = splatProgress !== undefined ? splatProgress * 100 : loader.progress;
   if (!active && progress >= 100) return null;
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center bg-stage">
@@ -36,6 +38,7 @@ export function RoomExperience3D({
 }) {
   const [mode, setMode] = useState<ViewMode>("overview");
   const [resetKey, setResetKey] = useState(0);
+  const [splatProgress, setSplatProgress] = useState(0);
   const selectedProductId = useRoomStore((s) => s.selectedProductId);
   const selectProduct = useRoomStore((s) => s.selectProduct);
 
@@ -52,8 +55,15 @@ export function RoomExperience3D({
 
   return (
     <div className="relative h-[calc(100dvh-4rem)] w-full overflow-hidden bg-stage">
-      <RoomCanvas room={room} products={productsById} mode={mode} resetKey={resetKey} onSelect={handleSelect} />
-      <LoadingOverlay />
+      <RoomCanvas
+        room={room}
+        products={productsById}
+        mode={mode}
+        resetKey={resetKey}
+        onSelect={handleSelect}
+        onSplatProgress={setSplatProgress}
+      />
+      <LoadingOverlay splatProgress={room.splat ? splatProgress : undefined} />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 md:p-6">
         <div className="text-white">

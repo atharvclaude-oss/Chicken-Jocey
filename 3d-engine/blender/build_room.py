@@ -21,6 +21,7 @@ from mathutils import Vector
 HERE = Path(__file__).resolve().parent
 ENGINE = HERE.parent
 sys.path.insert(0, str(HERE))
+import furniture  # noqa: E402
 import polyhaven  # noqa: E402
 
 WALL_T = 0.12  # wall thickness (m), built outside the room footprint
@@ -73,7 +74,7 @@ def principled(name, color=(0.8, 0.8, 0.8, 1), rough=0.5, metal=0.0, emit=None, 
     return m
 
 
-def textured(name, tex_id, tile=1.0, tint=None, color=None, res="2k", rough_min=None):
+def textured(name, tex_id, tile=1.0, tint=None, color=None, res="2k", rough_min=None, detail=False, normal=0.8):
     """PBR material from a Poly Haven texture set, box-mapped in object space so
     walls/floors of any size tile at real-world scale without UV work."""
     maps = polyhaven.texture(tex_id, res)
@@ -95,8 +96,16 @@ def textured(name, tex_id, tile=1.0, tint=None, color=None, res="2k", rough_min=
         nt.links.new(mapping.outputs["Vector"], n.inputs["Vector"])
         return n
 
-    diff = img("diff")
-    if color:  # recolor (e.g. paint) while keeping the texture's variation
+    if detail:
+        # Surface detail only (weave, grain, plaster): flat color + the texture's
+        # normal and roughness. Avoids the source texture's own hue (e.g. blue linen).
+        b.inputs["Base Color"].default_value = hex_rgb(color) if color else (0.8, 0.8, 0.8, 1)
+        diff = None
+    else:
+        diff = img("diff")
+    if diff is None:
+        pass
+    elif color:  # recolor (e.g. paint) while keeping the texture's variation
         mix = nt.nodes.new("ShaderNodeMix")
         mix.data_type, mix.blend_type = "RGBA", "MULTIPLY"
         mix.inputs["Factor"].default_value = 1.0
@@ -131,7 +140,7 @@ def textured(name, tex_id, tile=1.0, tint=None, color=None, res="2k", rough_min=
         nt.links.new(rough, b.inputs["Roughness"])
     if "nor" in maps:
         nmap = nt.nodes.new("ShaderNodeNormalMap")
-        nmap.inputs["Strength"].default_value = 0.8
+        nmap.inputs["Strength"].default_value = normal
         nt.links.new(img("nor", True).outputs["Color"], nmap.inputs["Color"])
         nt.links.new(nmap.outputs["Normal"], b.inputs["Normal"])
     return m
@@ -170,7 +179,8 @@ def build_shell(spec):
     floor_m = textured("floor", mats["floor"]["texture"], mats["floor"].get("tile", 1), tint=mats["floor"].get("tint"),
                        rough_min=mats["floor"].get("rough_min"))
     if mats["walls"].get("texture"):
-        wall_m = textured("walls", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=mats["walls"]["color"])
+        wall_m = textured("walls", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=mats["walls"]["color"],
+                          detail=mats["walls"].get("detail", False), normal=mats["walls"].get("normal", 0.8))
     else:
         wall_m = principled("walls", hex_rgb(mats["walls"]["color"]), rough=0.9)
     ceil_m = principled("ceiling", hex_rgb(mats["ceiling"]["color"]), rough=0.9)
@@ -200,19 +210,30 @@ def build_shell(spec):
             box(f"wall_{side}_b", (t, D - y1, H), (x, (y1 + D) / 2, H / 2), wall_m)
             box(f"wall_{side}_c", (t, y1 - y0, z0), (x, (y0 + y1) / 2, z0 / 2), wall_m)
             box(f"wall_{side}_d", (t, y1 - y0, H - z1), (x, (y0 + y1) / 2, (z1 + H) / 2), wall_m)
-            # Slim black steel frame with two mullions.
+            # Slim black steel frame; mullions roughly every 0.9 m.
             fx = W + 0.03 if side == "right" else -0.03
             f = 0.045
-            box("window_frame_l", (0.06, f, z1 - z0), (fx, y0 + f / 2, (z0 + z1) / 2), frame_m)
-            box("window_frame_r", (0.06, f, z1 - z0), (fx, y1 - f / 2, (z0 + z1) / 2), frame_m)
-            box("window_frame_t", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z1 - f / 2), frame_m)
-            box("window_frame_b", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z0 + f / 2), frame_m)
-            for i in (1, 2):
-                yy = y0 + (y1 - y0) * i / 3
-                box(f"window_mullion_{i}", (0.05, 0.03, z1 - z0), (fx, yy, (z0 + z1) / 2), frame_m)
-            box("window_sill", (0.2, y1 - y0 + 0.1, 0.03), (W - 0.06 if side == "right" else 0.06, (y0 + y1) / 2, z0 - 0.015), base_m)
+            p = f"window_{side}"
+            box(f"{p}_frame_l", (0.06, f, z1 - z0), (fx, y0 + f / 2, (z0 + z1) / 2), frame_m)
+            box(f"{p}_frame_r", (0.06, f, z1 - z0), (fx, y1 - f / 2, (z0 + z1) / 2), frame_m)
+            box(f"{p}_frame_t", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z1 - f / 2), frame_m)
+            box(f"{p}_frame_b", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z0 + f / 2), frame_m)
+            n = max(0, round((y1 - y0) / 0.9) - 1)
+            for i in range(1, n + 1):
+                yy = y0 + (y1 - y0) * i / (n + 1)
+                box(f"{p}_mullion_{i}", (0.05, 0.03, z1 - z0), (fx, yy, (z0 + z1) / 2), frame_m)
+            inward = -1 if side == "right" else 1
+            edge = W if side == "right" else 0.0
+            box(f"{p}_sill", (0.2, y1 - y0 + 0.1, 0.03), (edge + inward * 0.06, (y0 + y1) / 2, z0 - 0.015), base_m)
+            if w.get("blind"):
+                build_blind(p, edge + inward * 0.07, y0, y1, z0, z1, w["blind"], faces=inward)
         else:
-            box(f"wall_{side}", size, loc, wall_m)
+            accent = mats.get("accent_wall")
+            m = wall_m
+            if accent and accent["wall"] == side:
+                m = textured("accent_wall", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=accent["color"],
+                             detail=True, normal=mats["walls"].get("normal", 0.5))
+            box(f"wall_{side}", size, loc, m)
 
     # Baseboards.
     bh = mats["baseboard"]["height"]
@@ -220,6 +241,52 @@ def build_shell(spec):
     box("baseboard_front", (W, 0.015, bh), (W / 2, 0.0075, bh / 2), base_m)
     box("baseboard_left", (0.015, D, bh), (0.0075, D / 2, bh / 2), base_m)
     box("baseboard_right", (0.015, D, bh), (W - 0.0075, D / 2, bh / 2), base_m)
+
+
+def build_blind(prefix, x, y0, y1, z0, z1, coverage, faces=-1):
+    """Zebra roller blind: cassette at the top, striped fabric down to `coverage`."""
+    cass = principled("blind_cassette", hex_rgb("#efede8"), rough=0.5)
+    fabric = bpy.data.materials.new("blind_fabric")
+    fabric.use_nodes = True
+    nt = fabric.node_tree
+    b = nt.nodes["Principled BSDF"]
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(coord.outputs["Object"], sep.inputs["Vector"])
+    # Alternating sheer / solid bands, 7.5 cm each: z position -> stripes.
+    wave = nt.nodes.new("ShaderNodeMath")
+    wave.operation = "PINGPONG"
+    wave.inputs[1].default_value = 0.075
+    nt.links.new(sep.outputs["Z"], wave.inputs[0])
+    band = nt.nodes.new("ShaderNodeMath")
+    band.operation = "GREATER_THAN"
+    band.inputs[1].default_value = 0.0375
+    nt.links.new(wave.outputs[0], band.inputs[0])
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.inputs[6].default_value = hex_rgb("#d9cdb6")  # sheer band (backlit)
+    mix.inputs[7].default_value = hex_rgb("#cbbb9c")  # solid band
+    nt.links.new(band.outputs[0], mix.inputs["Factor"])
+    nt.links.new(mix.outputs[2], b.inputs["Base Color"])
+    b.inputs["Roughness"].default_value = 0.9
+    # Sheer bands let daylight through and glow a little, like the real fabric.
+    alpha = nt.nodes.new("ShaderNodeMapRange")
+    alpha.inputs["To Min"].default_value = 0.35
+    alpha.inputs["To Max"].default_value = 1.0
+    nt.links.new(band.outputs[0], alpha.inputs["Value"])
+    nt.links.new(alpha.outputs["Result"], b.inputs["Alpha"])
+
+    width = y1 - y0 + 0.08
+    drop = (z1 - z0) * coverage
+    box(f"{prefix}_blind_cassette", (0.09, width, 0.09), (x, (y0 + y1) / 2, z1 + 0.04), cass, 0.01)
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(x + 0.01, (y0 + y1) / 2, z1 - drop / 2),
+                                     rotation=(0, math.radians(90 * faces), 0))  # +Z normal -> faces (x) into the room
+    panel = bpy.context.active_object
+    panel.name = f"{prefix}_blind"
+    panel.scale = (drop, width - 0.02, 1)
+    bpy.ops.object.transform_apply(scale=True)
+    panel.data.materials.append(fabric)
+    box(f"{prefix}_blind_bar", (0.03, width - 0.02, 0.025), (x + 0.01, (y0 + y1) / 2, z1 - drop), cass, 0.005)
 
 
 def build_environment(spec):
@@ -240,11 +307,14 @@ def build_environment(spec):
     bg.inputs["Strength"].default_value = env.get("strength", 1.0)
 
     # Low afternoon sun through the window for a defined light pool on the floor.
+    if env.get("sun", 3.5) <= 0:
+        return
     sun = link(bpy.data.objects.new("sun", bpy.data.lights.new("sun", "SUN")))
     sun.data.energy = env.get("sun", 3.5)
     sun.data.angle = math.radians(1.5)
     sun.data.color = (1.0, 0.9, 0.78)
-    sun.rotation_euler = (math.radians(62), 0, math.radians(-68))
+    elev, azim = env.get("sun_angle", [62, -68])  # tilt from vertical, heading
+    sun.rotation_euler = (math.radians(elev), 0, math.radians(azim))
 
 
 # ---------------------------------------------------------------- objects
@@ -281,9 +351,21 @@ def proc_area_light(spec, idx):
 
 def proc_rug(spec, idx):
     w, d = spec["size"]
-    m = textured(f"rug_{idx}", spec["texture"], 0.4, color=spec.get("color"))
-    o = box(f"rug_{idx}_mesh", (w, d, 0.012), (0, 0, 0.006), m, bevel=0.005)
-    return group(f"rug_{idx}", [o], spec)
+    m = (textured(f"rug_{idx}", spec["texture"], spec.get("tile", 0.4), color=spec.get("color"),
+                  tint=spec.get("tint"), detail=spec.get("detail", False)) if spec.get("texture")
+         else principled(f"rug_{idx}", hex_rgb(spec.get("color", "#d8d0c0")), rough=1.0))
+    parts = [box(f"rug_{idx}_mesh", (w, d, 0.012), (0, 0, 0.006), m, bevel=0.005)]
+    if spec.get("border"):  # simple printed border band, inset from the edge
+        bm = principled(f"rug_{idx}_border", hex_rgb(spec["border"]), rough=0.95)
+        bw, inset, z = 0.07, 0.12, 0.0125
+        for name, size, loc in (
+            ("t", (w - 2 * inset, bw, 0.001), (0, d / 2 - inset, z)),
+            ("b", (w - 2 * inset, bw, 0.001), (0, -d / 2 + inset, z)),
+            ("l", (bw, d - 2 * inset, 0.001), (-w / 2 + inset, 0, z)),
+            ("r", (bw, d - 2 * inset, 0.001), (w / 2 - inset, 0, z)),
+        ):
+            parts.append(box(f"rug_{idx}_border_{name}", size, loc, bm))
+    return group(f"rug_{idx}", parts, spec)
 
 
 def proc_framed_print(spec, idx):
@@ -437,7 +519,8 @@ def main():
     SPEC = json.loads(spec_path.read_text())
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    setup_render(args.samples, SPEC.get("exposure", 0.6))
+    # Rooms specify exposure either top-level ("exposure") or under "render".
+    setup_render(args.samples, SPEC.get("render", {}).get("exposure", SPEC.get("exposure", 0.6)))
     build_shell(SPEC)
     build_environment(SPEC)
     for i, obj in enumerate(SPEC["objects"]):
@@ -445,7 +528,10 @@ def main():
         if kind == "polyhaven":
             import_polyhaven(obj, i)
         elif kind == "proc":
-            PROC[name](obj, i)
+            if name in PROC:
+                PROC[name](obj, i)
+            else:
+                furniture.BUILDERS[name](obj, i, sys.modules[__name__])
     cams = add_cameras(SPEC)
 
     out = Path(args.out) / SPEC["id"]

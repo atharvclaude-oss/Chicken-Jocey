@@ -8,6 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { Product } from "@shared/types";
 import type { RoomScene } from "@/services/scenes";
 import { formatPrice } from "@/utils/format";
+import { SplatCameraRig, SplatRoom, SplatTags } from "./SplatRoom";
 import { track } from "@/utils/analytics";
 
 export type ViewMode = "overview" | "walk";
@@ -58,12 +59,16 @@ function Room({
       const src = mesh.material as THREE.MeshStandardMaterial;
       const map = src.emissiveMap ?? src.map;
       if (map) map.colorSpace = THREE.SRGBColorSpace;
-      mesh.material = new THREE.MeshBasicMaterial({ map, toneMapped: false });
+      // Single-sided except thin cloth (blinds), which is seen from both sides.
+      const thin = /_blind$/.test(mesh.name) || /_blind$/.test(mesh.parent?.name ?? "");
+      mesh.material = new THREE.MeshBasicMaterial({ map, toneMapped: false, side: thin ? THREE.DoubleSide : THREE.FrontSide });
       // Multi-material nodes import as a Group of meshes; the node name is on the group.
       const name =
         [mesh.name, mesh.parent?.name ?? ""].find((n) => /^(wall_|baseboard_|window_|ceiling)/.test(n)) ?? mesh.name;
       for (const side of ["front", "back", "left", "right"]) {
-        if (name.startsWith(`wall_${side}`) || name.startsWith(`baseboard_${side}`) || (side === "right" && name.startsWith("window_"))) {
+        if (name.startsWith(`wall_${side}`) || name.startsWith(`baseboard_${side}`) || name.startsWith(`window_${side}`) ||
+          // rooms exported before windows were named per side
+          (side === "right" && /^window_(frame|mullion|sill)/.test(name))) {
           walls[side].push(mesh);
         }
       }
@@ -97,20 +102,26 @@ function Room({
     }
   }, [hoveredId, groups]);
 
+  // Hidden cutaway walls still intersect rays; only count what's actually shown.
+  const firstVisible = (e: ThreeEvent<PointerEvent | MouseEvent>) => e.intersections.find((i) => i.object.visible);
+
   const handleMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    const pid = productIdOf(e.object);
-    onHover(pid && products[pid] ? pid : null, e.point);
+    const hit = firstVisible(e);
+    const pid = hit ? productIdOf(hit.object) : null;
+    onHover(pid && products[pid] ? pid : null, hit?.point);
   };
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 4) return; // that was a drag, not a click
     e.stopPropagation();
-    const pid = productIdOf(e.object);
+    const hit = firstVisible(e);
+    if (!hit) return;
+    const pid = productIdOf(hit.object);
     if (pid && products[pid]) return onSelect(pid);
     // Walk mode: clicking the floor glides you there.
-    if (mode === "walk" && e.object.name.startsWith("floor") && e.face && e.face.normal.y > 0.5) {
-      onWalkTo(e.point);
+    if (mode === "walk" && hit.object.name.startsWith("floor") && hit.face && hit.face.normal.y > 0.5) {
+      onWalkTo(hit.point);
     }
   };
 
@@ -225,19 +236,26 @@ function CameraRig({
   );
 }
 
-function Background({ url, rotation = 0 }: { url?: string; rotation?: number }) {
-  const scene = useThree((s) => s.scene);
+/**
+ * The outdoor view only makes sense through the windows (walk mode). From the
+ * dollhouse overview you'd see the photo's ground, so use a plain backdrop there.
+ */
+function Background({ url, rotation = 0, mode }: { url?: string; rotation?: number; mode: ViewMode }) {
+  const get = useThree((s) => s.get);
+  const [tex, setTex] = useState<THREE.Texture | null>(null);
   useEffect(() => {
     if (!url) return;
-    const tex = new THREE.TextureLoader().load(url, (t) => {
-      t.mapping = THREE.EquirectangularReflectionMapping;
-      t.colorSpace = THREE.SRGBColorSpace;
-      scene.background = t;
-      scene.backgroundRotation.set(0, THREE.MathUtils.degToRad(rotation), 0);
+    const t = new THREE.TextureLoader().load(url, (loaded) => {
+      loaded.mapping = THREE.EquirectangularReflectionMapping;
+      loaded.colorSpace = THREE.SRGBColorSpace;
+      setTex(loaded);
     });
-    return () => tex.dispose();
-  }, [url, rotation, scene]);
-  return null;
+    return () => t.dispose();
+  }, [url]);
+  useEffect(() => {
+    get().scene.backgroundRotation.set(0, THREE.MathUtils.degToRad(rotation), 0);
+  }, [rotation, get]);
+  return mode === "walk" && tex ? <primitive object={tex} attach="background" /> : <color attach="background" args={["#101113"]} />;
 }
 
 export function RoomCanvas({
@@ -246,12 +264,14 @@ export function RoomCanvas({
   mode,
   resetKey,
   onSelect,
+  onSplatProgress,
 }: {
   room: RoomScene;
   products: Record<string, Product>;
   mode: ViewMode;
   resetKey: number;
   onSelect: (productId: string) => void;
+  onSplatProgress?: (fraction: number) => void;
 }) {
   const [hover, setHover] = useState<{ id: string; point: THREE.Vector3 } | null>(null);
   const [walkTarget, setWalkTarget] = useState<THREE.Vector3 | null>(null);
@@ -280,13 +300,22 @@ export function RoomCanvas({
       flat
       dpr={[1, 2]}
       camera={{ fov: 62, near: 0.05, far: 200 }}
-      gl={{ antialias: true }}
+      // Splat rendering doesn't benefit from MSAA and it costs a lot of performance.
+      gl={{ antialias: !room.splat }}
       style={{ touchAction: "none" }}
       onPointerMissed={() => setHover(null)}
     >
       <color attach="background" args={["#0b0c0e"]} />
+      {room.splat ? (
+        <>
+          <SplatRoom config={room.splat} onProgress={onSplatProgress} onLoaded={() => onSplatProgress?.(1)} />
+          <SplatTags tags={room.splat.tags} products={products} onSelect={onSelect} />
+          <SplatCameraRig config={room.splat} mode={mode} resetKey={resetKey} />
+        </>
+      ) : (
+      <>
       <Suspense fallback={null}>
-        <Background url={room.background} rotation={room.backgroundRotation} />
+        <Background url={room.background} rotation={room.backgroundRotation} mode={mode} />
         <Room
           scene={room}
           mode={mode}
@@ -298,6 +327,8 @@ export function RoomCanvas({
         />
       </Suspense>
       <CameraRig room={room} mode={mode} walkTarget={walkTarget} resetKey={resetKey} />
+      </>
+      )}
       {product && hover && (
         <Html position={hover.point} center style={{ pointerEvents: "none" }} zIndexRange={[30, 0]}>
           <div className="-translate-y-8 whitespace-nowrap rounded-full bg-black/70 px-3 py-1.5 text-xs text-white backdrop-blur-md">

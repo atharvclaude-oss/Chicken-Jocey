@@ -3,7 +3,7 @@
 // real fetch() when the backend endpoints land; nothing else needs to change.
 //
 
-import type { Product, RoomStyle } from "@shared/types";
+import type { Product, RoomStyle, SupplierListing } from "@shared/types";
 
 export const styles: RoomStyle[] = [
   {
@@ -68,16 +68,20 @@ export const products: Product[] = [
     "A soft dome of light for a nightstand or desk corner. Dimmable LED, USB-C powered.", "32 x 24 cm"),
   p("arc-floor-lamp", "Arc Floor Lamp", 8900, "lighting", ["sleek-masculine", "warm-minimal", "modern-luxury"], "Graphite",
     "Steel stem, tilting shade. Throws light over a chair or bed without taking floor space.", "165 x 30 cm"),
-  p("dome-pendant", "Dome Pendant Light", 4250, "lighting", ["warm-minimal"], "Matte white",
-    "A simple spun-metal pendant that works over a bed, desk or reading chair.", "28 x 22 cm, 1.5 m cord"),
+  p("dome-pendant", "Globe Pendant Light", 4250, "lighting", ["warm-minimal", "sleek-masculine"], "Matte white",
+    "A spun-metal globe pendant with a warm, glare-free glow. Works over a coffee table, bed or desk.", "Ø 30 cm, 1.5 m cord"),
   p("tripod-table-lamp", "Tripod Linen Lamp", 5400, "lighting", ["warm-minimal", "sleek-masculine", "modern-luxury"], "Oak and linen",
     "Solid oak legs and a linen drum shade. Warm, even light for a bedside.", "48 x 30 cm"),
   p("typography-print", "Be Fearless Print", 1899, "wall-art", ["sleek-masculine", "gaming-minimal", "warm-minimal"], "Black",
     "Matte giclee print in a slim black frame. Lean it or hang it.", "50 x 70 cm"),
   p("oak-gallery-frame", "Oak Gallery Frame", 3200, "wall-art", ["warm-minimal", "dark-academia", "sleek-masculine", "modern-luxury"], "Natural oak",
     "Deep-profile oak frame with a white mount. Fits standard A2 prints.", "50 x 70 cm"),
-  p("woven-wool-rug", "Woven Wool Rug", 12900, "rugs", ["warm-minimal", "modern-luxury", "sleek-masculine", "dark-academia"], "Ivory",
-    "Hand-loomed wool with a low pile. Soft underfoot, easy to vacuum.", "160 x 230 cm"),
+  p("woven-wool-rug", "Woven Plaid Wool Rug", 12900, "rugs", ["sleek-masculine", "modern-luxury", "dark-academia"], "Grey check",
+    "Flat-woven wool in a fine grey and sand check. Low pile, easy to vacuum.", "180 x 260 cm"),
+  p("cream-shag-rug", "Cream Plush Rug", 8900, "rugs", ["warm-minimal", "gaming-minimal"], "Cream with black border",
+    "Thick, soft-touch plush pile with a crisp black border. Non-slip backing.", "190 x 250 cm"),
+  p("faux-potted-plant", "Faux Ficus in Terracotta", 5900, "decor", ["warm-minimal", "sleek-masculine", "gaming-minimal"], "Green",
+    "A realistic faux ficus in a footed terracotta pot. No watering, no dropped leaves.", "Approx. 135 cm tall"),
   p("linen-throw-pillow", "Linen Throw Pillow", 2200, "decor", ["sleek-masculine", "warm-minimal", "modern-luxury"], "White",
     "Stonewashed linen cover with a feather insert. Removable, machine washable.", "50 x 50 cm"),
   p("pampas-bundle", "Dried Pampas Bundle", 1650, "decor", ["warm-minimal", "modern-luxury", "sleek-masculine"], "Natural",
@@ -102,6 +106,8 @@ export const products: Product[] = [
     "Real-wax LED candle with a moving flame. Timer switch, no open fire.", "20 x 7.5 cm", false),
   p("felt-desk-mat", "Wool Felt Desk Mat", 3400, "desk", ["gaming-minimal"], "Charcoal",
     "Thick merino felt with a non-slip base. Covers keyboard and mouse.", "90 x 40 cm"),
+  p("gaming-chair", "Racing Gaming Chair", 18900, "seating", ["gaming-minimal"], "Black and white",
+    "Bucket-seat gaming chair with a tall back, padded armrests and a recline lever.", "130 x 66 x 70 cm"),
   p("studio-monitor-speakers", "Compact Studio Speakers", 15900, "desk", ["gaming-minimal"], "White",
     "Powered bookshelf speakers with Bluetooth and a headphone out.", "15 x 10 x 13 cm (each)"),
   p("living-sofa", "Tufted Leather Chesterfield Sofa", 189900, "seating", ["sleek-masculine"], "Black leather",
@@ -129,3 +135,34 @@ export const products: Product[] = [
   p("living-plant-b", "Potted Monstera Plant", 5900, "decor", ["warm-minimal", "sleek-masculine"], "Green",
     "Large-leaf potted plant in a terracotta pot. Placeholder listing.", "70 cm tall", false),
 ];
+
+// ---------------------------------------------------------------- sourcing
+// Where we buy each product when a customer orders. The source of truth is
+// backend/data/sourcing.tsv (priced by `npm run price-sheet`); entries with a
+// SKU below are mirrored there. "search" entries still need an exact listing
+// before they can be added to the sheet. Nothing is verified yet. See /SOURCING.md.
+const AE = "https://www.aliexpress.com/w/wholesale-";
+const sourcing: Record<string, SupplierListing> = {
+  "gaming-chair": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256808049031703.html", costCents: null, verified: false,
+    notes: "SKU GM-CHAIR-001 in backend/data/sourcing.tsv. Confirm a black/white colorway is offered." },
+  "linen-throw-pillow": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256805834494752.html", costCents: null, verified: false,
+    notes: "SKU WM-PILL-002 in backend/data/sourcing.tsv. Cover only: insert sourced separately." },
+  "oak-gallery-frame": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256807185391953.html", costCents: null, verified: false,
+    notes: "SKU WM-FRAM-001 in backend/data/sourcing.tsv. Check 50x70 size and whether a white mount is included." },
+  "tripod-table-lamp": { name: "AliExpress", kind: "search", url: `${AE}wooden%20tripod%20table%20lamp.html`, costCents: null, verified: false,
+    notes: "Look for a ~36 cm wooden tripod lamp with a linen drum shade." },
+  "cream-shag-rug": { name: "AliExpress", kind: "search", url: "https://www.aliexpress.us/w/wholesale-cream-rug-with-black-border.html", costCents: null, verified: false,
+    notes: "Plush cream rug with a black border, ~190x250 cm." },
+  "woven-wool-rug": { name: "AliExpress", kind: "search", url: `${AE}tufted-wool-rug.html`, costCents: null, verified: false,
+    notes: "Grey/sand check flat-weave, ~180x260 cm. Plaid is uncommon: may need a different supplier." },
+  "faux-potted-plant": { name: "AliExpress", kind: "search", url: `${AE}artificial-ficus-tree.html`, costCents: null, verified: false,
+    notes: "~1.3 m faux ficus. Pot is often sold separately." },
+  "arc-floor-lamp": { name: "AliExpress", kind: "search", url: `${AE}arc-floor-lamp-black.html`, costCents: null, verified: false,
+    notes: "Black arc lamp with a dome shade and weighted (ideally marble) base." },
+  "dome-pendant": { name: "AliExpress", kind: "search", url: "https://www.aliexpress.us/w/wholesale-modern-pendant-lamp.html", costCents: null, verified: false,
+    notes: "White metal or opal glass globe pendant, ~30 cm." },
+};
+for (const product of products) {
+  if (sourcing[product.id]) product.supplier = sourcing[product.id];
+}
+

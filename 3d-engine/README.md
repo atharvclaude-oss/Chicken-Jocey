@@ -17,6 +17,14 @@ blender -b --python blender/build_room.py -- rooms/sleek-lounge-01.json --sample
 # 2. Bake lighting into textures and export the .glb for the website
 blender -b renders/sleek-lounge-01/sleek-lounge-01.blend --python blender/bake_export.py -- --out ../frontend/public/models
 
+# 2b. Compress for the web (~75% smaller). Keep the full export as the source.
+#     Don't use `optimize` defaults: joining/flattening breaks wall-hiding and
+#     product tags, and default quantization causes seams.
+mv ../frontend/public/models/sleek-lounge-01.glb renders/sleek-lounge-01/sleek-lounge-01-full.glb
+npx @gltf-transform/cli webp renders/sleek-lounge-01/sleek-lounge-01-full.glb /tmp/w.glb --quality 88
+npx @gltf-transform/cli meshopt /tmp/w.glb ../frontend/public/models/sleek-lounge-01.glb \
+  --quantize-position 16 --quantize-texcoord 16 --quantize-normal 10
+
 # 3. Export the window view image
 blender -b --python blender/export_view.py -- rooms/sleek-lounge-01.json ../frontend/public/models/sleek-lounge-01-view.jpg
 ```

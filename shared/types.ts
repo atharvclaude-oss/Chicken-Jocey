@@ -34,6 +34,22 @@ export interface Product {
   dimensions: string;
   shippingEstimate: string;
   available: boolean;
+  /** Where we buy it when a customer orders (dropshipping). Internal only. */
+  supplier?: SupplierListing;
+}
+
+/**
+ * A supplier listing we fulfil orders from. `kind: "search"` means a curated
+ * search link: someone still has to pick the exact listing. Costs stay null
+ * until a person has checked the live price; never show this to customers.
+ */
+export interface SupplierListing {
+  name: "AliExpress";
+  kind: "listing" | "search";
+  url: string;
+  costCents: Cents | null;
+  verified: boolean;
+  notes?: string;
 }
 
 /** Position of a purchasable object in a room render, in % of width/height. */
