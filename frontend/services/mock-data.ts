@@ -137,18 +137,18 @@ export const products: Product[] = [
 ];
 
 // ---------------------------------------------------------------- sourcing
-// Where we buy each product when a customer orders. Collected by search only:
-// AliExpress product pages require login, so prices/stock are NOT verified.
-// Before launch, someone must open each link, pick the exact listing, and fill
-// in costCents. See /SOURCING.md.
+// Where we buy each product when a customer orders. The source of truth is
+// backend/data/sourcing.tsv (priced by `npm run price-sheet`); entries with a
+// SKU below are mirrored there. "search" entries still need an exact listing
+// before they can be added to the sheet. Nothing is verified yet. See /SOURCING.md.
 const AE = "https://www.aliexpress.com/w/wholesale-";
 const sourcing: Record<string, SupplierListing> = {
   "gaming-chair": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256808049031703.html", costCents: null, verified: false,
-    notes: "Ergonomic high-back racing chair. Confirm a black/white colorway is offered." },
+    notes: "SKU GM-CHAIR-001 in backend/data/sourcing.tsv. Confirm a black/white colorway is offered." },
   "linen-throw-pillow": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256805834494752.html", costCents: null, verified: false,
-    notes: "Solid-color linen cover, 50x50 option. Cover only: insert sourced separately." },
+    notes: "SKU WM-PILL-002 in backend/data/sourcing.tsv. Cover only: insert sourced separately." },
   "oak-gallery-frame": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256807185391953.html", costCents: null, verified: false,
-    notes: "Natural solid oak frame. Check 50x70 size and whether a white mount is included." },
+    notes: "SKU WM-FRAM-001 in backend/data/sourcing.tsv. Check 50x70 size and whether a white mount is included." },
   "tripod-table-lamp": { name: "AliExpress", kind: "search", url: `${AE}wooden%20tripod%20table%20lamp.html`, costCents: null, verified: false,
     notes: "Look for a ~36 cm wooden tripod lamp with a linen drum shade." },
   "cream-shag-rug": { name: "AliExpress", kind: "search", url: "https://www.aliexpress.us/w/wholesale-cream-rug-with-black-border.html", costCents: null, verified: false,
