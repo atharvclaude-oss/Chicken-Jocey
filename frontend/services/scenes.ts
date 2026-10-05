@@ -63,7 +63,7 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 70,
     size: { width: 4.3, depth: 4.9, height: 2.8 },
     walkStart: { x: 0.8, y: 0.6, lookAt: { x: 2.4, y: 4.0 } },
-    productIds: ["linen-throw-pillow", "tripod-table-lamp", "pampas-bundle", "woven-wool-rug", "oak-gallery-frame", "gaming-chair"],
+    productIds: ["linen-throw-pillow", "tripod-table-lamp", "faux-potted-plant", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
   },
 ];
 
