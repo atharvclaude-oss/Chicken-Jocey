@@ -1,5 +1,6 @@
 import type { Product, ProductCategory } from "@shared/types";
-import { products, rooms, styles } from "./mock-data";
+import { products, styles } from "./mock-data";
+import { scenes } from "./scenes";
 
 // TODO(backend): replace mock lookups with fetch(`${API_URL}/products/...`).
 
@@ -13,6 +14,8 @@ export const categoryLabels: Record<ProductCategory, string> = {
   desk: "Desk",
   decor: "Decor",
   seating: "Seating",
+  furniture: "Furniture",
+  electronics: "Electronics",
 };
 
 export interface ProductFilters {
@@ -38,13 +41,11 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     .filter((p): p is Product => Boolean(p));
 }
 
-/** How many rooms feature each product. Drives "Also in N other rooms". */
+/** How many 3D rooms feature each product. Drives "Also in N other rooms". */
 export async function getRoomCounts(): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
-  for (const r of rooms) {
-    for (const id of new Set(r.assets.map((a) => a.productId))) {
-      counts[id] = (counts[id] ?? 0) + 1;
-    }
+  for (const scene of scenes) {
+    for (const id of new Set(scene.productIds)) counts[id] = (counts[id] ?? 0) + 1;
   }
   return counts;
 }

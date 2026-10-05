@@ -65,8 +65,8 @@ export function RoomExperience3D({
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-6">
         <p className="rounded-full bg-black/45 px-4 py-2 text-center text-xs text-white/80 backdrop-blur-md">
           {mode === "overview"
-            ? "Drag to orbit. Click any highlighted piece to shop it."
-            : "Drag to look around. Click the floor to walk. Click a piece to shop it."}
+            ? "Drag to orbit · scroll to zoom · click any highlighted piece to shop it."
+            : "Drag to look around · click the floor to walk · click a piece to shop it."}
         </p>
         <div className="flex items-center gap-1.5 rounded-full bg-black/55 p-1.5 text-white backdrop-blur-md">
           <ModeButton active={mode === "overview"} onClick={() => setMode("overview")} icon={<Cube size={18} />}>

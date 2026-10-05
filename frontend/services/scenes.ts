@@ -15,6 +15,8 @@ export interface RoomScene {
   size: { width: number; depth: number; height: number };
   /** Where walk mode starts, in room coordinates (meters from the front-left corner). */
   walkStart: { x: number; y: number; lookAt: { x: number; y: number } };
+  /** Catalogue products tagged (via productId) in the baked model. */
+  productIds: string[];
 }
 
 export const scenes: RoomScene[] = [
@@ -27,9 +29,32 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 200,
     size: { width: 5.0, depth: 4.2, height: 2.8 },
     walkStart: { x: 1.2, y: 0.5, lookAt: { x: 3.0, y: 3.2 } },
+    productIds: ["oak-gallery-frame", "woven-wool-rug", "arc-floor-lamp", "dome-pendant"],
+  },
+  {
+    id: "living-room-02",
+    name: "Living Room 02",
+    style: "Living Room",
+    model: "/models/living-room-02.glb",
+    size: { width: 5.2, depth: 4.2, height: 2.7 },
+    walkStart: { x: 2.8, y: 1.05, lookAt: { x: 2.39, y: 3.5 } },
+    productIds: [
+      "living-sofa",
+      "living-armchair",
+      "living-coffee-table",
+      "living-rug",
+      "living-side-table",
+      "living-vase",
+      "living-tv-stand",
+      "living-art",
+      "living-pendant",
+      "living-bookshelf",
+      "living-plant-a",
+      "living-plant-b",
+    ],
   },
 ];
 
-export async function getScene(id?: string): Promise<RoomScene> {
-  return scenes.find((s) => s.id === id) ?? scenes[0];
+export async function getScenes(): Promise<RoomScene[]> {
+  return scenes;
 }

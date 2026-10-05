@@ -8,7 +8,6 @@ import { useHydrated } from "@/hooks/useHydrated";
 import { SITE_NAME } from "@/utils/site";
 
 const links = [
-  { href: "/rooms", label: "Rooms" },
   { href: "/catalogue", label: "Catalogue" },
 ];
 

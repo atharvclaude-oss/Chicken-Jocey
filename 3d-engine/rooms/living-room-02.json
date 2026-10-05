@@ -1,0 +1,242 @@
+{
+  "id": "living-room-02",
+  "name": "Living Room 02",
+  "style": "living-room",
+  "units": "meters",
+  "_coords": "x = width, y = depth (front to back), z = up. rot 0 = faces -y.",
+  "room": {
+    "width": 5.2,
+    "depth": 4.2,
+    "height": 2.7
+  },
+  "exposure": 1.5,
+  "materials": {
+    "floor": {
+      "texture": "dark_wooden_planks",
+      "tile": 1.6,
+      "tint": [
+        1,
+        1,
+        1
+      ],
+      "rough_min": 0.4
+    },
+    "walls": {
+      "texture": null,
+      "color": "#f4f2ee"
+    },
+    "ceiling": {
+      "color": "#f1efe9"
+    },
+    "baseboard": {
+      "color": "#ece9e2",
+      "height": 0.09
+    }
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "right",
+      "center": 1.98,
+      "width": 2.0,
+      "sill": 0.8,
+      "height": 1.5
+    }
+  ],
+  "environment": {
+    "hdri": "canary_wharf",
+    "strength": 0.9,
+    "rotation": 32.65668480379142,
+    "sun": 5.0
+  },
+  "objects": [
+    {
+      "asset": "polyhaven:sofa_02",
+      "pos": [
+        2.3862181433337715,
+        3.7
+      ],
+      "rot": 0,
+      "productId": "living-sofa"
+    },
+    {
+      "asset": "polyhaven:modern_coffee_table_01",
+      "pos": [
+        2.3862181433337715,
+        2.25
+      ],
+      "rot": 0,
+      "productId": "living-coffee-table"
+    },
+    {
+      "asset": "proc:rug",
+      "pos": [
+        2.3862181433337715,
+        2.0
+      ],
+      "size": [
+        2.6,
+        1.8
+      ],
+      "texture": "wool_boucle",
+      "color": "#7d6b57",
+      "productId": "living-rug"
+    },
+    {
+      "asset": "polyhaven:modern_arm_chair_01",
+      "pos": [
+        3.7362181433337716,
+        2.3
+      ],
+      "rot": -101.30993247402021,
+      "productId": "living-armchair"
+    },
+    {
+      "asset": "polyhaven:side_table_01",
+      "pos": [
+        3.6362181433337715,
+        3.6
+      ],
+      "rot": 0,
+      "productId": "living-side-table"
+    },
+    {
+      "asset": "polyhaven:ceramic_vase_03",
+      "pos": [
+        3.6362181433337715,
+        3.6,
+        0.5
+      ],
+      "rot": 0,
+      "productId": "living-vase"
+    },
+    {
+      "asset": "polyhaven:modern_wooden_cabinet",
+      "pos": [
+        2.400570945056447,
+        0.3
+      ],
+      "rot": 180,
+      "productId": "living-tv-stand"
+    },
+    {
+      "asset": "proc:framed_print",
+      "pos": [
+        2.3862181433337715,
+        4.17,
+        1.55
+      ],
+      "rot": 0,
+      "size": [
+        0.9,
+        1.15
+      ],
+      "image": "art/living_art_03.png",
+      "productId": "living-art"
+    },
+    {
+      "asset": "proc:area_light",
+      "pos": [
+        2.6,
+        2.1,
+        2.6
+      ],
+      "size": 2.4,
+      "watts": 45,
+      "kelvin": 3000
+    },
+    {
+      "asset": "polyhaven:modern_ceiling_lamp_01",
+      "pos": [
+        2.3862181433337715,
+        2.25
+      ],
+      "hang": 1.9,
+      "productId": "living-pendant",
+      "light": {
+        "watts": 60,
+        "kelvin": 2800
+      }
+    },
+    {
+      "asset": "polyhaven:wooden_bookshelf_worn",
+      "pos": [
+        0.25,
+        2.1
+      ],
+      "rot": 90,
+      "productId": "living-bookshelf"
+    },
+    {
+      "asset": "polyhaven:potted_plant_02",
+      "pos": [
+        4.8500000000000005,
+        0.4
+      ],
+      "rot": 13.498437039114556,
+      "productId": "living-plant-a"
+    },
+    {
+      "asset": "polyhaven:potted_plant_04",
+      "pos": [
+        0.35,
+        3.85
+      ],
+      "rot": 156.1124461184589,
+      "productId": "living-plant-b"
+    }
+  ],
+  "cameras": {
+    "hero": {
+      "pos": [
+        4.8500000000000005,
+        0.3,
+        1.7
+      ],
+      "target": [
+        2.6,
+        2.3100000000000005,
+        0.9
+      ],
+      "lens": 24
+    },
+    "corner": {
+      "pos": [
+        0.4,
+        0.3,
+        1.6
+      ],
+      "target": [
+        4.6000000000000005,
+        3.6,
+        0.9
+      ],
+      "lens": 24
+    },
+    "birdseye": {
+      "pos": [
+        2.6,
+        -2.4,
+        5.4
+      ],
+      "target": [
+        2.6,
+        2.1,
+        0.4
+      ],
+      "lens": 30,
+      "hide": [
+        "ceiling",
+        "wall_front"
+      ]
+    }
+  },
+  "walk_start": {
+    "x": 2.8,
+    "y": 1.05,
+    "lookAt": {
+      "x": 2.39,
+      "y": 3.5
+    }
+  }
+}

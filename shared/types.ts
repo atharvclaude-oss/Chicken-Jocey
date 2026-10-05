@@ -10,7 +10,9 @@ export type ProductCategory =
   | "rugs"
   | "desk"
   | "decor"
-  | "seating";
+  | "seating"
+  | "furniture"
+  | "electronics";
 
 export interface RoomStyle {
   slug: string;
