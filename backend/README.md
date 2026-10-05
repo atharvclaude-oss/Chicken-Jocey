@@ -67,3 +67,15 @@ All responses match `shared/types.ts`. Prices are integer cents.
 - Admin/ingestion endpoints (`POST /admin/products`, supplier URL import)
 - Supplier selection, availability sync jobs, margin alerts
 - Cart, checkout, orders, payments (Atharv's side)
+
+## Pricing the sourcing sheet
+
+The company floor is **retail ≥ 2× landed cost** (item + shipping), i.e. at
+least a 50% gross margin before payment fees. It lives in
+`src/modules/pricing/pricing.ts` (`MIN_MARKUP`).
+
+1. Fill `unit_cost_usd` and `shipping_usd` in `data/sourcing.tsv` (blank
+   shipping = free shipping).
+2. `npm run price-sheet` writes `data/sourcing-priced.csv` with landed cost,
+   retail (first .99 at or above 2×), markup and margin. It refuses to run if
+   SKUs or AliExpress item ids are duplicated or an id was mangled by Excel.

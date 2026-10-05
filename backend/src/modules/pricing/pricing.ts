@@ -30,3 +30,16 @@ export function suggestRetailCents(landedCents: number, targetMargin: number): n
 /** True when a listing's current cost pushes the variant under the floor. */
 export const isMarginBelow = (retailCents: number, costs: CostInputs, floor: number) =>
   grossMargin(retailCents, landedCostCents(costs)) < floor;
+
+/**
+ * Company floor: retail is at least 2x landed cost (item + shipping), i.e. a
+ * 50% gross margin before payment fees. Nothing goes live below this.
+ */
+export const MIN_MARKUP = 2;
+export const MIN_MARGIN = 1 - 1 / MIN_MARKUP;
+
+/** Default retail price for a new product: lowest .99 price at or above the floor. */
+export const floorRetailCents = (costs: CostInputs) => suggestRetailCents(landedCostCents(costs), MIN_MARGIN);
+
+export const isBelowFloor = (retailCents: number, costs: CostInputs) =>
+  retailCents < MIN_MARKUP * landedCostCents(costs);
