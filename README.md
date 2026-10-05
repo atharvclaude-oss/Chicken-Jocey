@@ -13,9 +13,9 @@ backend/    (not started) API: pricing authority, orders, payments
 
 ## Run the frontend
 
-```bash
+```
 cd frontend
-npm install
+npm install    dasdadsa
 npm run dev        # http://localhost:3000
 npm run build      # production build, all room/product pages prerendered
 ```
