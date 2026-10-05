@@ -1,0 +1,359 @@
+// Catalogue schema. Core rule: we own products, suppliers only fulfil them.
+// Customers, rooms and carts reference Product/ProductVariant ids. Supplier
+// listings hang off variants and can be swapped without touching anything a
+// customer sees.
+//
+// Money is integer cents (matches shared/types.ts). Never use floats for money.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// Product lifecycle. Only ACTIVE, PAUSED and OUT_OF_STOCK are publicly
+/// visible; the last two show as unavailable.
+enum ProductStatus {
+  DRAFT // submitted (e.g. by sourcing), incomplete
+  REVIEW // complete, waiting on catalogue/visual QA
+  ACTIVE
+  PAUSED // supplier disappeared or margin broke; waiting on a fix
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+/// Our confidence that a supplier can actually ship this today.
+enum Availability {
+  AVAILABLE
+  LOW_CONFIDENCE
+  OUT_OF_STOCK
+  UNKNOWN
+}
+
+enum Placement {
+  FLOOR
+  WALL
+  CEILING
+  DESK
+  NIGHTSTAND
+  SHELF
+  BED
+}
+
+enum RoomUse {
+  BEDROOM
+  DORM
+  OFFICE
+  GAMING_ROOM
+  LIVING_ROOM
+}
+
+enum SupplierPlatform {
+  ALIEXPRESS
+  ALIBABA
+  DISTRIBUTOR
+  OTHER
+}
+
+enum AssetKind {
+  MODEL_3D
+  IMAGE
+}
+
+enum RoomStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum BundleTier {
+  STARTER
+  STANDARD
+  COMPLETE
+}
+
+// ---------------------------------------------------------------------------
+// Taxonomy
+// ---------------------------------------------------------------------------
+
+/// Structural: every product has exactly one category.
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+/// Aesthetic: a product can carry many styles. Rooms belong to one style.
+model Style {
+  id         String         @id @default(cuid())
+  slug       String         @unique
+  name       String
+  tagline    String
+  coverImage String
+  sortOrder  Int            @default(0)
+  products   ProductStyle[]
+  rooms      Room[]
+}
+
+/// Merchandising, not structure: "Under $50", "Dorm Essentials". Hand-curated.
+model Collection {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  description String              @default("")
+  coverImage  String?
+  isPublished Boolean             @default(false)
+  sortOrder   Int                 @default(0)
+  products    CollectionProduct[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model CollectionProduct {
+  collectionId String
+  productId    String
+  position     Int        @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+}
+
+// ---------------------------------------------------------------------------
+// Products
+// ---------------------------------------------------------------------------
+
+model Product {
+  id               String        @id @default(cuid())
+  /// Public URL key. Never reuse a slug: it lives in links and analytics.
+  slug             String        @unique
+  name             String
+  description      String        @default("")
+  status           ProductStatus @default(DRAFT)
+  categoryId       String
+  category         Category      @relation(fields: [categoryId], references: [id])
+  placements       Placement[]
+  roomUses         RoomUse[]
+  /// Display string, e.g. "32 x 24 cm". Numeric size lives on the variant.
+  dimensionsLabel  String        @default("")
+  shippingEstimate String        @default("")
+  /// Free-form notes from sourcing/QA. Never shown to customers.
+  internalNotes    String        @default("")
+
+  variants    ProductVariant[]
+  styles      ProductStyle[]
+  collections CollectionProduct[]
+  roomItems   RoomProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, categoryId])
+}
+
+/// Every product has at least one variant. The variant with the lowest
+/// `position` is the default: its price and image represent the product.
+model ProductVariant {
+  id           String       @id @default(cuid())
+  productId    String
+  product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Our SKU, e.g. LAMP-017-BLK. Stable across supplier changes.
+  sku          String       @unique
+  name         String       @default("") // "Black", "Large", ...
+  color        String       @default("")
+  priceCents   Int
+  image        String
+  position     Int          @default(0)
+  /// Rolled up from supplier listings by the availability job.
+  availability Availability @default(UNKNOWN)
+  widthCm      Float?
+  depthCm      Float?
+  heightCm     Float?
+  modelAssetId String?
+  modelAsset   Asset?       @relation(fields: [modelAssetId], references: [id])
+
+  supplierListings SupplierProduct[]
+  priceHistory     RetailPriceHistory[]
+  roomItems        RoomProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, position])
+}
+
+model ProductStyle {
+  productId String
+  styleId   String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  style     Style   @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@id([productId, styleId])
+  @@index([styleId])
+}
+
+/// A file the 3D engine or UI loads (glb model, render). Stored in S3/R2;
+/// the backend only hands out URLs.
+model Asset {
+  id        String           @id @default(cuid())
+  kind      AssetKind
+  url       String
+  format    String // "glb", "jpg", ...
+  bytes     Int?
+  variants  ProductVariant[]
+  createdAt DateTime         @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Suppliers
+// ---------------------------------------------------------------------------
+
+model Supplier {
+  id        String            @id @default(cuid())
+  name      String
+  platform  SupplierPlatform
+  url       String?
+  notes     String            @default("")
+  /// 0-100, computed later from on-time, cancellation and refund rates.
+  score     Int?
+  listings  SupplierProduct[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+/// One supplier's listing that can fulfil one of our variants. A variant can
+/// have several; fulfilment picks by `priority` (1 = first choice) among
+/// AVAILABLE listings.
+model SupplierProduct {
+  id                    String         @id @default(cuid())
+  variantId             String
+  variant               ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  supplierId            String
+  supplier              Supplier       @relation(fields: [supplierId], references: [id])
+  supplierSku           String
+  url                   String
+  unitCostCents         Int
+  shippingCostCents     Int            @default(0)
+  minimumOrderQuantity  Int            @default(1)
+  estimatedDeliveryDays Int?
+  availability          Availability   @default(UNKNOWN)
+  priority              Int            @default(1)
+  lastCheckedAt         DateTime?
+
+  priceHistory SupplierPriceHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([supplierId, supplierSku])
+  @@index([variantId, priority])
+}
+
+/// Append-only. Written whenever a supplier's cost or shipping changes so
+/// margin drift can be flagged.
+model SupplierPriceHistory {
+  id                String          @id @default(cuid())
+  supplierProductId String
+  supplierProduct   SupplierProduct @relation(fields: [supplierProductId], references: [id], onDelete: Cascade)
+  unitCostCents     Int
+  shippingCostCents Int
+  recordedAt        DateTime        @default(now())
+
+  @@index([supplierProductId, recordedAt])
+}
+
+/// Append-only. Written whenever a variant's retail price changes.
+model RetailPriceHistory {
+  id         String         @id @default(cuid())
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  priceCents Int
+  recordedAt DateTime       @default(now())
+
+  @@index([variantId, recordedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Rooms
+// ---------------------------------------------------------------------------
+
+model Room {
+  id          String     @id @default(cuid())
+  slug        String
+  styleId     String
+  style       Style      @relation(fields: [styleId], references: [id])
+  name        String
+  blurb       String     @default("")
+  status      RoomStatus @default(DRAFT)
+  roomUse     RoomUse?
+  /// Photo-view render and its pixel size (hotspots are % of these).
+  image       String
+  imageWidth  Int
+  imageHeight Int
+  sortOrder   Int        @default(0)
+
+  items   RoomProduct[]
+  bundles RoomBundle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([styleId, slug])
+}
+
+/// A product placed in a room. Which variant is shown is fixed per placement
+/// (the room shows the black lamp even if white exists).
+model RoomProduct {
+  id            String         @id @default(cuid())
+  roomId        String
+  room          Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product        @relation(fields: [productId], references: [id])
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  /// The 3D engine's object id for this placement. Exposed as `assetId` in
+  /// the public API (shared/types.ts RoomAsset).
+  sceneObjectId String
+  /// Photo-view hotspot, % of image width/height.
+  hotspotX      Float
+  hotspotY      Float
+  /// 3D transform. Empty until the room is built in the 3D engine.
+  position      Float[]
+  rotation      Float[]
+  sortOrder     Int            @default(0)
+
+  bundleItems RoomBundleItem[]
+
+  @@unique([roomId, sceneObjectId])
+  @@index([productId])
+}
+
+/// A purchasable subset of a room (Starter / Standard / Complete).
+model RoomBundle {
+  id     String           @id @default(cuid())
+  roomId String
+  room   Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tier   BundleTier
+  name   String
+  items  RoomBundleItem[]
+
+  @@unique([roomId, tier])
+}
+
+model RoomBundleItem {
+  bundleId      String
+  roomProductId String
+  bundle        RoomBundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  roomProduct   RoomProduct @relation(fields: [roomProductId], references: [id], onDelete: Cascade)
+
+  @@id([bundleId, roomProductId])
+}

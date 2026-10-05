@@ -45,6 +45,13 @@ export interface RoomAsset {
   productId: string;
   assetId: string;
   hotspot: Hotspot;
+  /** The variant placed in the room (e.g. the black lamp, not the white). */
+  variantId?: string;
+  /** 3D model URL; null until the asset exists. */
+  modelUrl?: string | null;
+  /** 3D transform; empty until the room is built in the 3D engine. */
+  position?: number[];
+  rotation?: number[];
 }
 
 export interface Room {
@@ -63,6 +70,37 @@ export interface Room {
 export interface RoomSummary extends Room {
   totalCents: Cents;
   productCount: number;
+}
+
+export type BundleTier = "starter" | "standard" | "complete";
+
+export interface RoomBundle {
+  tier: BundleTier;
+  name: string;
+  productIds: string[];
+  totalCents: Cents;
+}
+
+/** GET /rooms/:style/:room: everything a room page needs in one request. */
+export interface RoomDetail extends RoomSummary {
+  products: Product[];
+  bundles: RoomBundle[];
+}
+
+export interface Category {
+  slug: ProductCategory;
+  name: string;
+}
+
+export interface Collection {
+  slug: string;
+  name: string;
+  description: string;
+  coverImage: string | null;
+}
+
+export interface CollectionDetail extends Collection {
+  products: Product[];
 }
 
 export type CartItem =

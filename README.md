@@ -7,7 +7,7 @@ Shop the room, not just the product. Customers browse complete designer rooms, c
 ```
 frontend/   Next.js 16 app (App Router, TypeScript, Tailwind v4, Zustand, Motion)
 shared/     Domain types shared by frontend and backend (Product, Room, CartItem, Order)
-backend/    (not started) API: pricing authority, orders, payments
+backend/    Fastify + Prisma + Postgres API: catalogue, rooms, pricing (see backend/README.md)
 3d-engine/  (not started) React Three Fiber room canvas, imported by frontend
 ```
 
