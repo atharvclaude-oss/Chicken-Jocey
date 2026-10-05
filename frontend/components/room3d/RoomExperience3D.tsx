@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { ArrowCounterClockwise, Cube, PersonSimpleWalk } from "@phosphor-icons/react";
@@ -30,12 +29,10 @@ function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
 
 export function RoomExperience3D({
   room,
-  rooms,
   products,
   roomCounts,
 }: {
   room: RoomScene;
-  rooms: { id: string; name: string }[];
   products: Product[];
   roomCounts: Record<string, number>;
 }) {
@@ -73,29 +70,13 @@ export function RoomExperience3D({
           <p className="text-sm text-white/60">{room.style}</p>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{room.name}</h1>
         </div>
-        {rooms.length > 1 && (
-          <nav aria-label="Rooms" className="pointer-events-auto flex gap-1 rounded-full bg-black/55 p-1 backdrop-blur-md">
-            {rooms.map((r) => (
-              <Link
-                key={r.id}
-                href={`/?room=${r.id}`}
-                aria-current={r.id === room.id ? "page" : undefined}
-                className={`rounded-full px-3.5 py-2 text-sm transition-colors ${
-                  r.id === room.id ? "bg-white text-[#131416]" : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {r.name}
-              </Link>
-            ))}
-          </nav>
-        )}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-6">
         <p className="rounded-full bg-black/45 px-4 py-2 text-center text-xs text-white/80 backdrop-blur-md">
           {mode === "overview"
-            ? "Drag to orbit. Click any highlighted piece to shop it."
-            : "Drag to look around. Click the floor to walk. Click a piece to shop it."}
+            ? "Drag to orbit · scroll to zoom · click any highlighted piece to shop it."
+            : "Drag to look around · click the floor to walk · click a piece to shop it."}
         </p>
         <div className="flex items-center gap-1.5 rounded-full bg-black/55 p-1.5 text-white backdrop-blur-md">
           <ModeButton active={mode === "overview"} onClick={() => setMode("overview")} icon={<Cube size={18} />}>

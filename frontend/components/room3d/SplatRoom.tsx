@@ -8,7 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
 import type { Product } from "@shared/types";
 import type { SplatConfig } from "@/services/scenes";
-import { Hotspot } from "@/components/room/Hotspot";
+import { Hotspot } from "./Hotspot";
 import type { ViewMode } from "./RoomCanvas";
 
 /*

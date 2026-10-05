@@ -1,18 +1,11 @@
-import { RoomExperience3D } from "@/components/room3d/RoomExperience3D";
+import { SceneCarousel } from "@/components/room3d/SceneCarousel";
 import { getProductsByIds, getRoomCounts } from "@/services/products";
-import { getScene, scenes } from "@/services/scenes";
+import { getScenes } from "@/services/scenes";
 
-export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const { room: roomId } = await searchParams;
-  const room = await getScene(typeof roomId === "string" ? roomId : undefined);
-  const [products, roomCounts] = await Promise.all([getProductsByIds(room.productIds), getRoomCounts()]);
-  return (
-    <RoomExperience3D
-      key={room.id}
-      room={room}
-      rooms={scenes.map((s) => ({ id: s.id, name: s.name }))}
-      products={products}
-      roomCounts={roomCounts}
-    />
-  );
+export default async function HomePage() {
+  const [scenes, roomCounts] = await Promise.all([getScenes(), getRoomCounts()]);
+  const productLists = await Promise.all(scenes.map((s) => getProductsByIds(s.productIds)));
+  const productsByScene = Object.fromEntries(scenes.map((s, i) => [s.id, productLists[i]]));
+
+  return <SceneCarousel scenes={scenes} productsByScene={productsByScene} roomCounts={roomCounts} />;
 }

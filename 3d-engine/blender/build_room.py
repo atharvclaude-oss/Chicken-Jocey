@@ -178,9 +178,11 @@ def build_shell(spec):
     mats = spec["materials"]
     floor_m = textured("floor", mats["floor"]["texture"], mats["floor"].get("tile", 1), tint=mats["floor"].get("tint"),
                        rough_min=mats["floor"].get("rough_min"))
-    wall_m = (textured("walls", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=mats["walls"]["color"],
-                       detail=mats["walls"].get("detail", False), normal=mats["walls"].get("normal", 0.8))
-              if mats["walls"].get("texture") else principled("walls", hex_rgb(mats["walls"]["color"]), rough=0.85))
+    if mats["walls"].get("texture"):
+        wall_m = textured("walls", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=mats["walls"]["color"],
+                          detail=mats["walls"].get("detail", False), normal=mats["walls"].get("normal", 0.8))
+    else:
+        wall_m = principled("walls", hex_rgb(mats["walls"]["color"]), rough=0.9)
     ceil_m = principled("ceiling", hex_rgb(mats["ceiling"]["color"]), rough=0.9)
     base_m = principled("baseboard", hex_rgb(mats["baseboard"]["color"]), rough=0.45)
     frame_m = principled("window_frame", hex_rgb("#151617"), rough=0.35, metal=0.6)
@@ -338,6 +340,15 @@ def import_polyhaven(spec, idx):
     return root
 
 
+def proc_area_light(spec, idx):
+    light = link(bpy.data.objects.new(f"area_{idx}", bpy.data.lights.new(f"area_{idx}", "AREA")))
+    light.data.energy = spec.get("watts", 40)
+    light.data.color = kelvin_rgb(spec.get("kelvin", 3000))
+    light.data.size = spec.get("size", 1.5)
+    light.location = tuple(spec["pos"])
+    return light
+
+
 def proc_rug(spec, idx):
     w, d = spec["size"]
     m = (textured(f"rug_{idx}", spec["texture"], spec.get("tile", 0.4), color=spec.get("color"),
@@ -451,12 +462,17 @@ def proc_arc_floor_lamp(spec, idx):
     return group(f"arc_floor_lamp_{idx}", [base, arc, shade, bulb, light], spec)
 
 
-PROC = {"rug": proc_rug, "framed_print": proc_framed_print, "arc_floor_lamp": proc_arc_floor_lamp}
+PROC = {
+    "rug": proc_rug,
+    "framed_print": proc_framed_print,
+    "arc_floor_lamp": proc_arc_floor_lamp,
+    "area_light": proc_area_light,
+}
 
 
 # ---------------------------------------------------------------- render
 
-def setup_render(samples):
+def setup_render(samples, exposure=0.6):
     scn = bpy.context.scene
     scn.render.engine = "CYCLES"
     prefs = bpy.context.preferences.addons["cycles"].preferences
@@ -471,7 +487,7 @@ def setup_render(samples):
     scn.cycles.max_bounces = 8
     scn.view_settings.view_transform = "AgX"
     scn.view_settings.look = "AgX - Medium High Contrast"
-    scn.view_settings.exposure = 0.6
+    scn.view_settings.exposure = exposure
     scn.render.resolution_x, scn.render.resolution_y = 1600, 1000
 
 
@@ -503,8 +519,8 @@ def main():
     SPEC = json.loads(spec_path.read_text())
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    setup_render(args.samples)
-    bpy.context.scene.view_settings.exposure = SPEC.get("render", {}).get("exposure", 0.6)
+    # Rooms specify exposure either top-level ("exposure") or under "render".
+    setup_render(args.samples, SPEC.get("render", {}).get("exposure", SPEC.get("exposure", 0.6)))
     build_shell(SPEC)
     build_environment(SPEC)
     for i, obj in enumerate(SPEC["objects"]):

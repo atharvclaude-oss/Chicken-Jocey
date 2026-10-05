@@ -4,6 +4,7 @@
 export type AnalyticsEvent =
   | "room_opened"
   | "room_rotated"
+  | "room_changed"
   | "product_hovered"
   | "product_clicked"
   | "product_added_from_room"

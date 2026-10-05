@@ -35,7 +35,7 @@ export function CartView() {
           Open a room and click anything in it, or buy the whole room in one go.
         </p>
         <div className="mt-8 flex justify-center gap-2">
-          <ButtonLink href="/rooms" size="lg">Browse rooms</ButtonLink>
+          <ButtonLink href="/" size="lg">Browse rooms</ButtonLink>
           <ButtonLink href="/catalogue" size="lg" variant="secondary">Shop catalogue</ButtonLink>
         </div>
       </div>

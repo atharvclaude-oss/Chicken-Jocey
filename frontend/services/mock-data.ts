@@ -2,10 +2,8 @@
 // Only the services/ layer imports this file. Swap each service function to a
 // real fetch() when the backend endpoints land; nothing else needs to change.
 //
-// Photos are Unsplash stand-ins (Unsplash License) until Samir's room renders
-// and product shots are ready. See public/images/README.md.
 
-import type { Product, Room, RoomStyle, SupplierListing } from "@shared/types";
+import type { Product, RoomStyle, SupplierListing } from "@shared/types";
 
 export const styles: RoomStyle[] = [
   {
@@ -112,6 +110,30 @@ export const products: Product[] = [
     "Bucket-seat gaming chair with a tall back, padded armrests and a recline lever.", "130 x 66 x 70 cm"),
   p("studio-monitor-speakers", "Compact Studio Speakers", 15900, "desk", ["gaming-minimal"], "White",
     "Powered bookshelf speakers with Bluetooth and a headphone out.", "15 x 10 x 13 cm (each)"),
+  p("living-sofa", "Tufted Leather Chesterfield Sofa", 189900, "seating", ["sleek-masculine"], "Black leather",
+    "Deep-buttoned leather sofa on turned wooden feet. Placeholder listing.", "220 x 95 x 75 cm", false),
+  p("living-armchair", "Leather Lounge Armchair", 59900, "seating", ["sleek-masculine", "warm-minimal"], "Black leather and oak",
+    "Padded leather seat on a solid oak frame. Placeholder listing.", "80 x 80 x 85 cm", false),
+  p("living-coffee-table", "Oak Coffee Table", 34900, "furniture", ["sleek-masculine", "warm-minimal"], "Oak and stone",
+    "Low table with a stone top and oak legs. Placeholder listing.", "120 x 60 x 42 cm", false),
+  p("living-rug", "Plaid Wool Area Rug", 42900, "rugs", ["sleek-masculine", "warm-minimal"], "Taupe and blush",
+    "Hand-finished plaid wool rug with a low pile. Placeholder listing.", "240 x 170 cm", false),
+  p("living-side-table", "Oak Side Table", 18900, "furniture", ["sleek-masculine", "warm-minimal"], "Oak",
+    "Small two-tier side table in solid oak. Placeholder listing.", "45 x 45 x 55 cm", false),
+  p("living-vase", "Ceramic Bud Vase", 4200, "decor", ["sleek-masculine", "warm-minimal"], "Ivory",
+    "Tall ceramic vase with a matte glaze. Placeholder listing.", "10 x 10 x 40 cm", false),
+  p("living-tv-stand", "Walnut Media Console", 74900, "furniture", ["sleek-masculine", "gaming-minimal"], "Walnut",
+    "Low media console with a long walnut top and soft-close drawers. Placeholder listing.", "160 x 45 x 50 cm", false),
+  p("living-art", "Checkerboard Framed Print", 8900, "wall-art", ["sleek-masculine", "warm-minimal"], "Oak frame",
+    "Giclee print in a solid oak frame. Placeholder listing.", "70 x 90 cm", false),
+  p("living-pendant", "Globe Pendant Light", 12900, "lighting", ["sleek-masculine", "warm-minimal"], "Matte white",
+    "Frosted globe pendant on a fine cord. Placeholder listing.", "35 cm diameter, 1.2 m drop", false),
+  p("living-bookshelf", "Worn Oak Bookshelf", 49900, "furniture", ["sleek-masculine", "warm-minimal"], "Worn oak",
+    "Five-shelf open bookcase in reclaimed-style oak. Placeholder listing.", "90 x 35 x 180 cm", false),
+  p("living-plant-a", "Potted Fern Plant", 3900, "decor", ["warm-minimal", "sleek-masculine"], "Green",
+    "Leafy potted plant in a terracotta pot. Placeholder listing.", "45 cm tall", false),
+  p("living-plant-b", "Potted Monstera Plant", 5900, "decor", ["warm-minimal", "sleek-masculine"], "Green",
+    "Large-leaf potted plant in a terracotta pot. Placeholder listing.", "70 cm tall", false),
 ];
 
 // ---------------------------------------------------------------- sourcing
@@ -144,78 +166,3 @@ for (const product of products) {
   if (sourcing[product.id]) product.supplier = sourcing[product.id];
 }
 
-const room = (
-  slug: string,
-  styleSlug: string,
-  name: string,
-  blurb: string,
-  imageWidth: number,
-  imageHeight: number,
-  assets: [productId: string, x: number, y: number][],
-): Room => ({
-  id: slug,
-  slug,
-  styleSlug,
-  name,
-  blurb,
-  image: `/images/rooms/${slug}.jpg`,
-  imageWidth,
-  imageHeight,
-  assets: assets.map(([productId, x, y], i) => ({
-    productId,
-    assetId: `${slug}-${String(i + 1).padStart(2, "0")}`,
-    hotspot: { x, y },
-  })),
-});
-
-export const rooms: Room[] = [
-  room("midnight-minimal", "sleek-masculine", "Midnight Minimal",
-    "One lamp, dark walls, nothing extra.", 1600, 2400,
-    [["swing-arm-desk-lamp", 48, 41], ["linen-throw-pillow", 32, 52], ["woven-wool-rug", 62, 78]]),
-  room("graphite-modern", "sleek-masculine", "Graphite Modern",
-    "A city-view bedroom in soft charcoal and oak.", 1600, 1067,
-    [["tripod-table-lamp", 91, 45], ["linen-throw-pillow", 60, 57], ["pampas-bundle", 80, 62], ["woven-wool-rug", 30, 90]]),
-  room("urban-black", "sleek-masculine", "Urban Black",
-    "Black bedding, line art and one bright pillow.", 1600, 1412,
-    [["oak-gallery-frame", 27, 30], ["typography-print", 52, 30], ["swing-arm-desk-lamp", 73, 43], ["linen-throw-pillow", 30, 62], ["pampas-bundle", 78, 64]]),
-
-  room("oak-and-linen", "warm-minimal", "Oak and Linen",
-    "A low reclaimed-wood bed and a pile of pillows.", 1600, 1067,
-    [["dome-pendant", 82, 12], ["pampas-bundle", 83, 48], ["linen-throw-pillow", 59, 83], ["woven-wool-rug", 30, 94]]),
-  room("soft-morning", "warm-minimal", "Soft Morning",
-    "Plants, rattan and a gallery wall that grew over time.", 1600, 1600,
-    [["dome-pendant", 49, 30], ["oak-gallery-frame", 22, 40], ["linen-throw-pillow", 47, 59], ["pampas-bundle", 95, 68]]),
-  room("studio-calm", "warm-minimal", "Studio Calm",
-    "A reading corner built around one yellow chair.", 1600, 1412,
-    [["arc-floor-lamp", 25, 32], ["typography-print", 40, 26], ["cloud-lounge-chair", 41, 62], ["pampas-bundle", 66, 42]]),
-
-  room("reading-room", "dark-academia", "The Reading Room",
-    "Heavy curtains, a writing desk and afternoon light.", 1600, 2400,
-    [["oak-gallery-frame", 94, 10], ["leather-atlas", 22, 55], ["banker-lamp", 55, 52], ["woven-wool-rug", 35, 88]]),
-  room("night-library", "dark-academia", "Night Library",
-    "Floor-to-ceiling shelves lit by candlelight.", 1600, 2000,
-    [["pillar-candle", 72, 35], ["oak-gallery-frame", 57, 64], ["leather-atlas", 88, 80]]),
-  room("writers-desk", "dark-academia", "Writer's Desk",
-    "A typewriter, a glowing bulb and books worth keeping.", 1600, 1150,
-    [["edison-globe-lamp", 64, 30], ["leather-atlas", 80, 50], ["walnut-monitor-riser", 30, 82]]),
-
-  room("monochrome-setup", "gaming-minimal", "Monochrome Setup",
-    "Black, grey and walnut. Every cable hidden.", 1600, 1200,
-    [["swing-arm-desk-lamp", 16, 40], ["studio-monitor-speakers", 39, 53], ["walnut-keyboard", 55, 70], ["felt-desk-mat", 38, 75]]),
-  room("walnut-desk", "gaming-minimal", "Walnut Desk",
-    "A warm wood desk for long sessions.", 1600, 1067,
-    [["walnut-keyboard", 30, 73], ["walnut-monitor-riser", 55, 47], ["felt-desk-mat", 58, 82]]),
-  room("afterhours", "gaming-minimal", "Afterhours",
-    "A late-night setup with one burst of color.", 1600, 1067,
-    [["studio-monitor-speakers", 21, 44], ["walnut-keyboard", 59, 51], ["felt-desk-mat", 46, 56]]),
-
-  room("gallery-suite", "modern-luxury", "Gallery Suite",
-    "Charcoal walls, brass light and a skyline view.", 1600, 1600,
-    [["oak-gallery-frame", 27, 32], ["banker-lamp", 6, 52], ["linen-throw-pillow", 38, 55], ["woven-wool-rug", 55, 90]]),
-  room("penthouse-lounge", "modern-luxury", "Penthouse Lounge",
-    "Marble, coffered ceilings and room to breathe.", 1600, 1067,
-    [["tripod-table-lamp", 9, 58], ["linen-throw-pillow", 25, 58], ["woven-wool-rug", 55, 72], ["cloud-lounge-chair", 90, 64]]),
-  room("golden-hour", "modern-luxury", "Golden Hour",
-    "Low sun, leather and a long view of the garden.", 1600, 844,
-    [["pampas-bundle", 25, 55], ["arc-floor-lamp", 60, 40], ["linen-throw-pillow", 69, 58], ["woven-wool-rug", 50, 88]]),
-];
