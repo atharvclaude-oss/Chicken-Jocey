@@ -1,0 +1,3 @@
+# Raw room captures (videos, photos, scans): large files, never commit
+*
+!.gitignore

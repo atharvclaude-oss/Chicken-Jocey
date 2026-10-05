@@ -104,6 +104,8 @@ export const products: Product[] = [
     "Real-wax LED candle with a moving flame. Timer switch, no open fire.", "20 x 7.5 cm", false),
   p("felt-desk-mat", "Wool Felt Desk Mat", 3400, "desk", ["gaming-minimal"], "Charcoal",
     "Thick merino felt with a non-slip base. Covers keyboard and mouse.", "90 x 40 cm"),
+  p("gaming-chair", "Racing Gaming Chair", 18900, "seating", ["gaming-minimal"], "Black and white",
+    "Bucket-seat gaming chair with a tall back, padded armrests and a recline lever.", "130 x 66 x 70 cm"),
   p("studio-monitor-speakers", "Compact Studio Speakers", 15900, "desk", ["gaming-minimal"], "White",
     "Powered bookshelf speakers with Bluetooth and a headphone out.", "15 x 10 x 13 cm (each)"),
 ];

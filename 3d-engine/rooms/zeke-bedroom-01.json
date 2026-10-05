@@ -1,0 +1,304 @@
+{
+  "id": "zeke-bedroom-01",
+  "name": "Zeke's Bedroom",
+  "style": "warm-minimal",
+  "units": "meters",
+  "_source": "Layout from one photo, restyled clean (Graphite Lounge quality bar). Enlarged ~15% so it doesn't feel cramped.",
+  "_coords": "x = width (left to right), y = depth (front to back), z = up. rot: 0 faces the front (-y), 90 faces +x, -90 faces -x.",
+  "room": {
+    "width": 4.3,
+    "depth": 4.9,
+    "height": 2.8
+  },
+  "render": {
+    "exposure": 0.15
+  },
+  "materials": {
+    "floor": {
+      "texture": "laminate_floor_02",
+      "tile": 2.0,
+      "tint": [
+        1.02,
+        1.0,
+        0.97
+      ],
+      "rough_min": 0.35
+    },
+    "walls": {
+      "texture": "white_plaster_02",
+      "color": "#ebe7df",
+      "tile": 1.5,
+      "detail": true,
+      "normal": 0.35
+    },
+    "ceiling": {
+      "color": "#efeeea"
+    },
+    "baseboard": {
+      "color": "#e8e5de",
+      "height": 0.08
+    },
+    "accent_wall": {
+      "wall": "back",
+      "color": "#b7ad9f"
+    }
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "right",
+      "center": 2.15,
+      "width": 2.4,
+      "sill": 0.95,
+      "height": 1.35,
+      "blind": 0.55
+    },
+    {
+      "type": "window",
+      "wall": "left",
+      "center": 2.3,
+      "width": 0.95,
+      "sill": 0.8,
+      "height": 1.5,
+      "blind": 0.6
+    }
+  ],
+  "environment": {
+    "hdri": "balcony",
+    "strength": 1.3,
+    "rotation": 30,
+    "sun": 5.0,
+    "sun_angle": [
+      74,
+      -72
+    ]
+  },
+  "objects": [
+    {
+      "asset": "proc:bed",
+      "pos": [
+        1.75,
+        3.84
+      ],
+      "rot": 0,
+      "size": [
+        1.37,
+        1.91
+      ],
+      "sheet": "#a39a90",
+      "duvet": "#dcd5c9"
+    },
+    {
+      "asset": "proc:pillows",
+      "pos": [
+        1.75,
+        4.62,
+        0.6
+      ],
+      "rot": 0,
+      "color": "#b3a99f",
+      "accent": "#5f5b56",
+      "productId": "linen-throw-pillow"
+    },
+    {
+      "asset": "proc:throw_blanket",
+      "pos": [
+        1.75,
+        3.08,
+        0.665
+      ],
+      "rot": 0,
+      "width": 1.48,
+      "color": "#77736e"
+    },
+    {
+      "asset": "polyhaven:side_table_01",
+      "pos": [
+        0.6,
+        4.58
+      ],
+      "rot": 0
+    },
+    {
+      "asset": "proc:tripod_lamp",
+      "pos": [
+        0.6,
+        4.6,
+        0.55
+      ],
+      "rot": 0,
+      "watts": 22,
+      "productId": "tripod-table-lamp"
+    },
+    {
+      "asset": "polyhaven:potted_plant_01",
+      "pos": [
+        3.85,
+        4.5
+      ],
+      "rot": 140,
+      "productId": "pampas-bundle"
+    },
+    {
+      "asset": "proc:rug",
+      "pos": [
+        1.35,
+        1.45
+      ],
+      "rot": 0,
+      "size": [
+        1.9,
+        2.5
+      ],
+      "texture": "curly_teddy_natural",
+      "tile": 0.35,
+      "tint": [
+        1.0,
+        0.97,
+        0.92
+      ],
+      "border": "#2b2b2b",
+      "productId": "woven-wool-rug"
+    },
+    {
+      "asset": "proc:framed_print",
+      "pos": [
+        0.02,
+        0.95,
+        1.5
+      ],
+      "rot": 90,
+      "size": [
+        0.62,
+        0.82
+      ],
+      "image": "art/print_arc.jpg",
+      "productId": "oak-gallery-frame"
+    },
+    {
+      "asset": "proc:desk",
+      "pos": [
+        3.94,
+        2.0
+      ],
+      "rot": -90,
+      "size": [
+        1.5,
+        0.7
+      ]
+    },
+    {
+      "asset": "proc:monitor",
+      "pos": [
+        4.12,
+        2.0,
+        0.755
+      ],
+      "rot": -90
+    },
+    {
+      "asset": "proc:keyboard",
+      "pos": [
+        3.82,
+        1.95,
+        0.755
+      ],
+      "rot": -90
+    },
+    {
+      "asset": "polyhaven:potted_plant_04",
+      "pos": [
+        4.05,
+        2.62,
+        0.755
+      ],
+      "rot": 20
+    },
+    {
+      "asset": "polyhaven:ceramic_vase_03",
+      "pos": [
+        4.08,
+        1.42,
+        0.755
+      ],
+      "rot": 0,
+      "scale": 0.7
+    },
+    {
+      "asset": "proc:office_chair",
+      "pos": [
+        3.2,
+        2.05
+      ],
+      "rot": 95,
+      "productId": "gaming-chair"
+    },
+    {
+      "asset": "proc:ceiling_light",
+      "pos": [
+        2.15,
+        3.1
+      ],
+      "light": {
+        "watts": 30,
+        "kelvin": 2700
+      }
+    },
+    {
+      "asset": "proc:ceiling_light",
+      "pos": [
+        2.15,
+        1.35
+      ],
+      "light": {
+        "watts": 30,
+        "kelvin": 2700
+      }
+    }
+  ],
+  "cameras": {
+    "hero": {
+      "pos": [
+        0.45,
+        0.3,
+        1.6
+      ],
+      "target": [
+        2.7,
+        3.9,
+        0.7
+      ],
+      "lens": 18
+    },
+    "corner": {
+      "pos": [
+        3.95,
+        4.55,
+        1.6
+      ],
+      "target": [
+        1.0,
+        0.9,
+        0.6
+      ],
+      "lens": 18
+    },
+    "birdseye": {
+      "pos": [
+        2.15,
+        -2.9,
+        6.6
+      ],
+      "target": [
+        2.15,
+        2.45,
+        0.2
+      ],
+      "lens": 28,
+      "hide": [
+        "ceiling",
+        "wall_front"
+      ]
+    }
+  }
+}

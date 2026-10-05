@@ -1,16 +1,18 @@
 import { RoomExperience3D } from "@/components/room3d/RoomExperience3D";
 import { getProductsByIds, getRoomCounts } from "@/services/products";
-import { getScene } from "@/services/scenes";
+import { getScene, scenes } from "@/services/scenes";
 
-// Products tagged (via productId) in the baked room model.
-// TODO: derive from the scene manifest once the pipeline writes one.
-const SCENE_PRODUCTS = ["oak-gallery-frame", "woven-wool-rug", "arc-floor-lamp", "dome-pendant"];
-
-export default async function HomePage() {
-  const [room, products, roomCounts] = await Promise.all([
-    getScene(),
-    getProductsByIds(SCENE_PRODUCTS),
-    getRoomCounts(),
-  ]);
-  return <RoomExperience3D room={room} products={products} roomCounts={roomCounts} />;
+export default async function HomePage({ searchParams }: PageProps<"/">) {
+  const { room: roomId } = await searchParams;
+  const room = await getScene(typeof roomId === "string" ? roomId : undefined);
+  const [products, roomCounts] = await Promise.all([getProductsByIds(room.productIds), getRoomCounts()]);
+  return (
+    <RoomExperience3D
+      key={room.id}
+      room={room}
+      rooms={scenes.map((s) => ({ id: s.id, name: s.name }))}
+      products={products}
+      roomCounts={roomCounts}
+    />
+  );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { ArrowCounterClockwise, Cube, PersonSimpleWalk } from "@phosphor-icons/react";
@@ -10,8 +11,10 @@ import { useRoomStore } from "@/store/room";
 import { track } from "@/utils/analytics";
 import { RoomCanvas, type ViewMode } from "./RoomCanvas";
 
-function LoadingOverlay() {
-  const { active, progress } = useProgress();
+function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
+  const loader = useProgress();
+  const active = splatProgress !== undefined ? splatProgress < 1 : loader.active;
+  const progress = splatProgress !== undefined ? splatProgress * 100 : loader.progress;
   if (!active && progress >= 100) return null;
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center bg-stage">
@@ -27,15 +30,18 @@ function LoadingOverlay() {
 
 export function RoomExperience3D({
   room,
+  rooms,
   products,
   roomCounts,
 }: {
   room: RoomScene;
+  rooms: { id: string; name: string }[];
   products: Product[];
   roomCounts: Record<string, number>;
 }) {
   const [mode, setMode] = useState<ViewMode>("overview");
   const [resetKey, setResetKey] = useState(0);
+  const [splatProgress, setSplatProgress] = useState(0);
   const selectedProductId = useRoomStore((s) => s.selectedProductId);
   const selectProduct = useRoomStore((s) => s.selectProduct);
 
@@ -52,14 +58,37 @@ export function RoomExperience3D({
 
   return (
     <div className="relative h-[calc(100dvh-4rem)] w-full overflow-hidden bg-stage">
-      <RoomCanvas room={room} products={productsById} mode={mode} resetKey={resetKey} onSelect={handleSelect} />
-      <LoadingOverlay />
+      <RoomCanvas
+        room={room}
+        products={productsById}
+        mode={mode}
+        resetKey={resetKey}
+        onSelect={handleSelect}
+        onSplatProgress={setSplatProgress}
+      />
+      <LoadingOverlay splatProgress={room.splat ? splatProgress : undefined} />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 md:p-6">
         <div className="text-white">
           <p className="text-sm text-white/60">{room.style}</p>
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{room.name}</h1>
         </div>
+        {rooms.length > 1 && (
+          <nav aria-label="Rooms" className="pointer-events-auto flex gap-1 rounded-full bg-black/55 p-1 backdrop-blur-md">
+            {rooms.map((r) => (
+              <Link
+                key={r.id}
+                href={`/?room=${r.id}`}
+                aria-current={r.id === room.id ? "page" : undefined}
+                className={`rounded-full px-3.5 py-2 text-sm transition-colors ${
+                  r.id === room.id ? "bg-white text-[#131416]" : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {r.name}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-6">
