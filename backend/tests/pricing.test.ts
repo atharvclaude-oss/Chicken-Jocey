@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { grossMargin, isMarginBelow, landedCostCents, suggestRetailCents } from "../src/modules/pricing/pricing.ts";
+import {
+  floorRetailCents,
+  grossMargin,
+  isBelowFloor,
+  isMarginBelow,
+  landedCostCents,
+  suggestRetailCents,
+} from "../src/modules/pricing/pricing.ts";
 
 describe("pricing", () => {
   it("adds up landed cost", () => {
@@ -23,5 +30,19 @@ describe("pricing", () => {
     const costs = { unitCostCents: 800, shippingCostCents: 250 };
     expect(isMarginBelow(2499, costs, 0.45)).toBe(false); // 58%
     expect(isMarginBelow(2499, { ...costs, unitCostCents: 1400 }, 0.45)).toBe(true); // 34%
+  });
+});
+
+describe("2x floor", () => {
+  it("prices at the first .99 at or above 2x landed cost", () => {
+    expect(floorRetailCents({ unitCostCents: 800, shippingCostCents: 200 })).toBe(2099); // 2x = $20.00
+    expect(floorRetailCents({ unitCostCents: 450, shippingCostCents: 0 })).toBe(999); // 2x = $9.00
+    expect(floorRetailCents({ unitCostCents: 1000, shippingCostCents: 0 })).toBe(2099); // $19.99 < $20
+  });
+
+  it("flags prices under 2x", () => {
+    const costs = { unitCostCents: 1000, shippingCostCents: 250 };
+    expect(isBelowFloor(2499, costs)).toBe(true);
+    expect(isBelowFloor(2500, costs)).toBe(false);
   });
 });
