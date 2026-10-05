@@ -1,0 +1,39 @@
+{
+  "id": "sleek-lounge-01",
+  "name": "Graphite Lounge",
+  "style": "sleek-masculine",
+  "units": "meters",
+  "_coords": "x = width (left to right), y = depth (front to back), z = up. rot is degrees; 0 = object faces the front of the room (-y), 90 = faces +x, -90 = faces -x.",
+  "room": { "width": 5.0, "depth": 4.2, "height": 2.8 },
+  "materials": {
+    "floor": { "texture": "herringbone_parquet", "tile": 1.6, "tint": [1.0, 0.92, 0.84], "rough_min": 0.38 },
+    "walls": { "texture": "white_plaster_02", "color": "#5a6067", "tile": 2.0 },
+    "ceiling": { "color": "#e9e7e2" },
+    "baseboard": { "color": "#1c1d1f", "height": 0.09 }
+  },
+  "openings": [
+    { "type": "window", "wall": "right", "center": 2.1, "width": 2.4, "sill": 0.45, "height": 2.05 }
+  ],
+  "environment": { "hdri": "canary_wharf", "strength": 3.0, "rotation": 160, "sun": 6.0 },
+  "objects": [
+    { "asset": "polyhaven:modern_wooden_cabinet", "pos": [2.5, 3.93], "rot": 0 },
+    { "asset": "polyhaven:ceramic_vase_03", "pos": [1.65, 3.95, 0.68], "rot": 0 },
+    { "asset": "polyhaven:potted_plant_04", "pos": [3.5, 3.95, 0.68], "rot": 30 },
+    { "asset": "proc:framed_print", "pos": [2.5, 4.18, 1.62], "rot": 0, "size": [0.9, 1.2], "image": "art/print_arc.jpg", "productId": "oak-gallery-frame" },
+
+    { "asset": "proc:rug", "pos": [2.45, 1.95], "size": [2.6, 1.8], "texture": "wool_boucle", "color": "#8d877e", "productId": "woven-wool-rug" },
+    { "asset": "polyhaven:modern_coffee_table_01", "pos": [2.45, 1.95], "rot": 90 },
+    { "asset": "polyhaven:mid_century_lounge_chair", "pos": [1.15, 2.05], "rot": 86 },
+    { "asset": "polyhaven:modern_arm_chair_01", "pos": [3.7, 1.45], "rot": -112 },
+    { "asset": "polyhaven:modern_arm_chair_01", "pos": [3.7, 2.55], "rot": -64 },
+
+    { "asset": "proc:arc_floor_lamp", "pos": [0.45, 2.9], "rot": 40, "reach": 1.35, "productId": "arc-floor-lamp" },
+    { "asset": "polyhaven:modern_ceiling_lamp_01", "pos": [2.45, 1.95], "hang": 1.85, "productId": "dome-pendant", "light": { "watts": 60, "kelvin": 2700 } },
+    { "asset": "polyhaven:potted_plant_02", "pos": [4.55, 3.75], "rot": 200, "scale": 1.25 }
+  ],
+  "cameras": {
+    "hero": { "pos": [0.55, 0.2, 1.6], "target": [3.1, 3.3, 0.8], "lens": 20 },
+    "corner": { "pos": [4.8, 0.2, 1.6], "target": [1.4, 3.3, 0.8], "lens": 20 },
+    "birdseye": { "pos": [2.5, -2.6, 6.2], "target": [2.5, 2.1, 0.2], "lens": 30, "hide": ["ceiling", "wall_front"] }
+  }
+}
