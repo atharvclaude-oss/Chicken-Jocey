@@ -15,7 +15,7 @@ backend/    Fastify + Prisma + Postgres API: catalogue, rooms, pricing (see back
 
 ```
 cd frontend
-npm install    dasdadsa
+npm install
 npm run dev        # http://localhost:3000
 npm run build      # production build, all room/product pages prerendered
 ```

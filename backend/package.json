@@ -14,10 +14,12 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "price-sheet": "tsx scripts/price-sheet.ts"
+    "price-sheet": "tsx scripts/price-sheet.ts",
+    "check-sourcing": "tsx scripts/check-sourcing.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
+    "@fastify/rate-limit": "^11.2.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "dotenv": "^18.0.5",

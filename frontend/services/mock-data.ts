@@ -3,7 +3,7 @@
 // real fetch() when the backend endpoints land; nothing else needs to change.
 //
 
-import type { Product, RoomStyle, SupplierListing } from "@shared/types";
+import type { Product, RoomStyle } from "@shared/types";
 
 export const styles: RoomStyle[] = [
   {
@@ -135,34 +135,3 @@ export const products: Product[] = [
   p("living-plant-b", "Potted Monstera Plant", 5900, "decor", ["warm-minimal", "sleek-masculine"], "Green",
     "Large-leaf potted plant in a terracotta pot. Placeholder listing.", "70 cm tall", false),
 ];
-
-// ---------------------------------------------------------------- sourcing
-// Where we buy each product when a customer orders. The source of truth is
-// backend/data/sourcing.tsv (priced by `npm run price-sheet`); entries with a
-// SKU below are mirrored there. "search" entries still need an exact listing
-// before they can be added to the sheet. Nothing is verified yet. See /SOURCING.md.
-const AE = "https://www.aliexpress.com/w/wholesale-";
-const sourcing: Record<string, SupplierListing> = {
-  "gaming-chair": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256808049031703.html", costCents: null, verified: false,
-    notes: "SKU GM-CHAIR-001 in backend/data/sourcing.tsv. Confirm a black/white colorway is offered." },
-  "linen-throw-pillow": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256805834494752.html", costCents: null, verified: false,
-    notes: "SKU WM-PILL-002 in backend/data/sourcing.tsv. Cover only: insert sourced separately." },
-  "oak-gallery-frame": { name: "AliExpress", kind: "listing", url: "https://www.aliexpress.us/item/3256807185391953.html", costCents: null, verified: false,
-    notes: "SKU WM-FRAM-001 in backend/data/sourcing.tsv. Check 50x70 size and whether a white mount is included." },
-  "tripod-table-lamp": { name: "AliExpress", kind: "search", url: `${AE}wooden%20tripod%20table%20lamp.html`, costCents: null, verified: false,
-    notes: "Look for a ~36 cm wooden tripod lamp with a linen drum shade." },
-  "cream-shag-rug": { name: "AliExpress", kind: "search", url: "https://www.aliexpress.us/w/wholesale-cream-rug-with-black-border.html", costCents: null, verified: false,
-    notes: "Plush cream rug with a black border, ~190x250 cm." },
-  "woven-wool-rug": { name: "AliExpress", kind: "search", url: `${AE}tufted-wool-rug.html`, costCents: null, verified: false,
-    notes: "Grey/sand check flat-weave, ~180x260 cm. Plaid is uncommon: may need a different supplier." },
-  "faux-potted-plant": { name: "AliExpress", kind: "search", url: `${AE}artificial-ficus-tree.html`, costCents: null, verified: false,
-    notes: "~1.3 m faux ficus. Pot is often sold separately." },
-  "arc-floor-lamp": { name: "AliExpress", kind: "search", url: `${AE}arc-floor-lamp-black.html`, costCents: null, verified: false,
-    notes: "Black arc lamp with a dome shade and weighted (ideally marble) base." },
-  "dome-pendant": { name: "AliExpress", kind: "search", url: "https://www.aliexpress.us/w/wholesale-modern-pendant-lamp.html", costCents: null, verified: false,
-    notes: "White metal or opal glass globe pendant, ~30 cm." },
-};
-for (const product of products) {
-  if (sourcing[product.id]) product.supplier = sourcing[product.id];
-}
-

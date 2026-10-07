@@ -1,38 +1,23 @@
-import type { Product, ProductCategory, SupplierListing } from "@shared/types";
+import "server-only";
+import type { Product, ProductCategory } from "@shared/types";
+import { categoryLabels } from "@/utils/categories";
 import { products, styles } from "./mock-data";
 import { scenes } from "./scenes";
 
+// Server-only: data access stays on the server, so nothing here (or a future
+// API_URL / token) can end up in the browser bundle. Client components import
+// display helpers from utils/ instead.
 // TODO(backend): replace mock lookups with fetch(`${API_URL}/products/...`).
+// Supplier links and costs live in backend/data/product-sourcing.tsv and are
+// only served by the backend's key-protected /admin routes.
 
-/**
- * Everything returned from this module may be rendered or serialized to the
- * browser, so supplier details (where we buy, what we pay) are stripped.
- * Use getSupplierListing() on the server for fulfilment.
- */
-const toPublic = (product: Product): Product => {
-  const copy = { ...product };
-  delete copy.supplier;
-  return copy;
-};
+export { categoryLabels };
 
-/** Internal only: supplier listing for fulfilment. Never pass to client components. */
-export async function getSupplierListing(productId: string): Promise<SupplierListing | null> {
-  return products.find((p) => p.id === productId)?.supplier ?? null;
-}
+/** Copy, so callers can't mutate the mock dataset. */
+const toPublic = (product: Product): Product => ({ ...product });
 
 /** Display name for a style slug. Styles are a small fixed list, so this stays sync. */
 export const styleName = (slug: string) => styles.find((s) => s.slug === slug)?.name ?? slug;
-
-export const categoryLabels: Record<ProductCategory, string> = {
-  lighting: "Lighting",
-  "wall-art": "Wall Art",
-  rugs: "Rugs",
-  desk: "Desk",
-  decor: "Decor",
-  seating: "Seating",
-  furniture: "Furniture",
-  electronics: "Electronics",
-};
 
 export interface ProductFilters {
   style?: string;
@@ -59,6 +44,20 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     .map((id) => products.find((p) => p.id === id))
     .filter((p): p is Product => Boolean(p))
     .map(toPublic);
+}
+
+export interface ProductRoom {
+  id: string;
+  name: string;
+}
+
+/** The 3D rooms each product appears in, in carousel order. */
+export async function getRoomsByProduct(): Promise<Record<string, ProductRoom[]>> {
+  const rooms: Record<string, ProductRoom[]> = {};
+  for (const scene of scenes) {
+    for (const id of new Set(scene.productIds)) (rooms[id] ??= []).push({ id: scene.id, name: scene.name });
+  }
+  return rooms;
 }
 
 /** How many 3D rooms feature each product. Drives "Also in N other rooms". */

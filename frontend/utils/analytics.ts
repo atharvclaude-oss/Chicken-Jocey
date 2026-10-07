@@ -10,7 +10,9 @@ export type AnalyticsEvent =
   | "product_added_from_room"
   | "product_added_from_catalogue"
   | "room_bundle_started"
-  | "room_bundle_purchased";
+  | "room_bundle_purchased"
+  | "cart_quantity_updated"
+  | "page_error";
 
 declare global {
   interface Window {

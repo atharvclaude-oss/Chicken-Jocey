@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Truck } from "@phosphor-icons/react/ssr";
+import { ArrowLeft, ArrowRight, Cube, Truck } from "@phosphor-icons/react/ssr";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
-import { categoryLabels, getProduct, getProducts, styleName } from "@/services/products";
+import { categoryLabels, getProduct, getProducts, getRoomsByProduct, styleName } from "@/services/products";
 import { formatPrice } from "@/utils/format";
+import { roomHref } from "@/utils/routes";
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -25,6 +26,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
 export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
   const product = await getProduct((await params).slug);
   if (!product) notFound();
+  const rooms = (await getRoomsByProduct())[product.id] ?? [];
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 pb-24 pt-8 md:px-8">
@@ -58,9 +60,31 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             </dd>
           </dl>
 
-          <AddToCartButton product={product} source="catalogue" className="mt-8 w-full sm:w-auto sm:min-w-[220px]" />
+          <AddToCartButton product={product} source="catalogue" className="mt-8 w-full sm:w-auto sm:min-w-[320px]" />
         </div>
       </div>
+
+      {rooms.length > 0 && (
+        <section id="in-rooms" className="mt-20 scroll-mt-24 border-t border-line pt-10">
+          <h2 className="text-2xl font-semibold tracking-tight">See it in a room</h2>
+          <p className="mt-2 text-muted">Walk around it in 3D, next to the pieces it was styled with.</p>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {rooms.map((room) => (
+              <li key={room.id}>
+                <Link
+                  href={roomHref(room.id, product.id)}
+                  className="group flex items-center justify-between gap-4 rounded-card border border-line bg-surface px-5 py-4 transition-colors hover:border-fg/40"
+                >
+                  <span className="inline-flex items-center gap-3 font-medium">
+                    <Cube size={20} className="text-muted" /> {room.name}
+                  </span>
+                  <ArrowRight size={18} className="text-muted transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
     </div>
   );

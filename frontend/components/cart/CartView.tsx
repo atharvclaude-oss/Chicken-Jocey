@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CaretDown, Minus, Plus, X } from "@phosphor-icons/react";
+import { CaretDown, X } from "@phosphor-icons/react";
 import type { CartItem } from "@shared/types";
 import { Button, ButtonLink } from "@/components/common/Button";
 import { useHydrated } from "@/hooks/useHydrated";
 import { lineTotal, useCart } from "@/store/cart";
 import { formatPrice, pluralize } from "@/utils/format";
+import { QuantityStepper } from "./QuantityStepper";
 
 export function CartView() {
   const hydrated = useHydrated();
@@ -87,15 +88,13 @@ function ProductLine({ item }: { item: Extract<CartItem, { kind: "product" }> })
           <p className="font-mono tabular-nums">{formatPrice(lineTotal(item))}</p>
         </div>
         <div className="mt-3 flex items-center justify-between">
-          <div className="inline-flex items-center rounded-full border border-line">
-            <QtyButton label="Decrease quantity" onClick={() => setQuantity(item.productId, item.quantity - 1)}>
-              <Minus size={14} />
-            </QtyButton>
-            <span className="w-8 text-center font-mono text-sm tabular-nums">{item.quantity}</span>
-            <QtyButton label="Increase quantity" onClick={() => setQuantity(item.productId, item.quantity + 1)}>
-              <Plus size={14} />
-            </QtyButton>
-          </div>
+          {/* min 0: stepping below 1 removes the line, as before. */}
+          <QuantityStepper
+            label={item.name}
+            min={0}
+            value={item.quantity}
+            onChange={(next) => setQuantity(item.productId, next)}
+          />
           <button type="button" onClick={() => remove(item.productId)} className="text-sm text-muted hover:text-fg">
             Remove
           </button>
@@ -160,18 +159,5 @@ function BundleLine({ item }: { item: Extract<CartItem, { kind: "bundle" }> }) {
         </ul>
       )}
     </div>
-  );
-}
-
-function QtyButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="grid size-9 place-items-center rounded-full transition-colors hover:bg-sunken"
-    >
-      {children}
-    </button>
   );
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { Product } from "@shared/types";
 import type { RoomScene } from "@/services/scenes";
 import { track } from "@/utils/analytics";
+import { replaceQuery } from "@/utils/url-state";
 import { RoomExperience3D } from "./RoomExperience3D";
 
 export function SceneCarousel({
@@ -16,7 +18,14 @@ export function SceneCarousel({
   productsByScene: Record<string, Product[]>;
   roomCounts: Record<string, number>;
 }) {
-  const [index, setIndex] = useState(0);
+  // ?room=<id> keeps the open room across Back, reloads and shared links.
+  const searchParams = useSearchParams();
+  const [index, setIndex] = useState(() => Math.max(0, scenes.findIndex((s) => s.id === searchParams.get("room"))));
+  // Piece and view to restore, read once on arrival; switching rooms starts fresh.
+  const [entry, setEntry] = useState(() => ({
+    productId: searchParams.get("product"),
+    mode: searchParams.get("view") === "walk" ? ("walk" as const) : ("overview" as const),
+  }));
   const count = scenes.length;
 
   const goTo = useCallback(
@@ -25,12 +34,16 @@ export function SceneCarousel({
       if (to === index) return;
       track("room_changed", { roomId: scenes[to].id, from: scenes[index].id });
       setIndex(to);
+      setEntry({ productId: null, mode: "overview" });
+      replaceQuery({ room: scenes[to].id, product: null, view: null });
     },
     [count, index, scenes],
   );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Leave arrow keys alone while a control (e.g. a quantity stepper) has focus.
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select, [role=group]")) return;
       if (e.key === "ArrowRight") goTo(index + 1);
       if (e.key === "ArrowLeft") goTo(index - 1);
     };
@@ -47,6 +60,8 @@ export function SceneCarousel({
         room={active}
         products={productsByScene[active.id] ?? []}
         roomCounts={roomCounts}
+        initialProductId={entry.productId}
+        initialMode={entry.mode}
       />
 
       <Reel scenes={scenes} index={index} onPick={goTo} />

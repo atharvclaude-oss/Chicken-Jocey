@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { ArrowCounterClockwise, Cube, PersonSimpleWalk } from "@phosphor-icons/react";
 import type { Product } from "@shared/types";
@@ -8,6 +8,7 @@ import type { RoomScene } from "@/services/scenes";
 import { ProductDrawer } from "@/components/room/ProductDrawer";
 import { useRoomStore } from "@/store/room";
 import { track } from "@/utils/analytics";
+import { replaceQuery } from "@/utils/url-state";
 import { RoomCanvas, type ViewMode } from "./RoomCanvas";
 
 function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
@@ -31,12 +32,17 @@ export function RoomExperience3D({
   room,
   products,
   roomCounts,
+  initialProductId = null,
+  initialMode = "overview",
 }: {
   room: RoomScene;
   products: Product[];
   roomCounts: Record<string, number>;
+  /** From the URL, so Back from a product page reopens the same piece. */
+  initialProductId?: string | null;
+  initialMode?: ViewMode;
 }) {
-  const [mode, setMode] = useState<ViewMode>("overview");
+  const [mode, setMode] = useState<ViewMode>(initialMode);
   const [resetKey, setResetKey] = useState(0);
   const [splatProgress, setSplatProgress] = useState(0);
   const selectedProductId = useRoomStore((s) => s.selectedProductId);
@@ -44,6 +50,18 @@ export function RoomExperience3D({
 
   const productsById = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
   const selected = selectedProductId ? productsById[selectedProductId] ?? null : null;
+
+  // The selection store is global: reset it to this room's URL state on entry,
+  // so a piece from the previous room never lingers.
+  useEffect(() => {
+    selectProduct(initialProductId && productsById[initialProductId] ? initialProductId : null);
+    // Only on entering the room; later changes flow the other way, into the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room.id]);
+
+  useEffect(() => {
+    replaceQuery({ product: selected?.id ?? null, view: mode === "walk" ? "walk" : null });
+  }, [selected, mode]);
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -100,7 +118,7 @@ export function RoomExperience3D({
       <ProductDrawer
         product={selected}
         roomId={room.id}
-        otherRoomCount={selected ? roomCounts[selected.id] ?? 0 : 0}
+        otherRoomCount={selected ? Math.max(0, (roomCounts[selected.id] ?? 1) - 1) : 0}
         onClose={() => selectProduct(null)}
       />
     </div>
