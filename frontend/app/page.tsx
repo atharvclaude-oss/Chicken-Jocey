@@ -13,8 +13,7 @@ export default async function HomePage() {
   const productLists = await Promise.all(scenes.map((s) => getProductsByIds(s.productIds)));
   const productsByScene = Object.fromEntries(scenes.map((s, i) => [s.id, productLists[i]]));
 
-  // The carousel reads ?room/?product/?view on the client, so the page itself
-  // stays static; the fallback is the same dark stage the room loads on.
+  // The carousel reads ?room/?product/?view on the client; the fallback is the dark stage it loads onto.
   return (
     <Suspense fallback={<div className="h-[calc(100dvh-4rem)] w-full bg-stage" />}>
       <SceneCarousel scenes={scenes} productsByScene={productsByScene} roomCounts={roomCounts} />

@@ -82,6 +82,7 @@ export async function getCapturedScenes(): Promise<RoomScene[]> {
     id: e.id,
     name: e.name,
     style: e.style,
+    styleSlug: "warm-minimal",
     model: "",
     size: { width: 5, depth: 5, height: 2.8 },
     walkStart: { x: 0, y: 0, lookAt: { x: 0, y: 0 } },
