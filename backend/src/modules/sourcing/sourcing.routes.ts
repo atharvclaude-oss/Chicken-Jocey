@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { SourcingService } from "./sourcing.service.ts";
 
-function hasKey(req: FastifyRequest, key: string): boolean {
+export function hasKey(req: FastifyRequest, key: string): boolean {
   const given = Buffer.from(req.headers.authorization?.replace(/^Bearer /, "") ?? "");
   const expected = Buffer.from(key);
   return given.length === expected.length && timingSafeEqual(given, expected);

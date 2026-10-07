@@ -53,6 +53,31 @@ All responses match `shared/types.ts`. Prices are integer cents.
 
 Unknown routes return JSON `404 {"error":"Not found"}`.
 
+## Checkout, orders and fulfilment
+
+Enabled when `STRIPE_SECRET_KEY` is set (use a **test** key until the Stripe
+account is activated). Flow:
+
+```
+POST /checkout {items:[{productId, quantity}]}   server prices it, order = PAYMENT_PENDING, returns Stripe Checkout URL
+Stripe -> POST /webhooks/stripe                   signature-checked; order = PAID, one fulfilment per supplier listing
+GET  /admin/fulfillments?status=AWAITING_APPROVAL ops queue (every supplier purchase needs a person's approval)
+POST /admin/fulfillments/:id/approve              re-checks live stock + price, then places the supplier order
+POST /admin/fulfillments/:id/tracking             pulls tracking; order = SHIPPED once every fulfilment ships
+GET  /orders/checkout/:sessionId                  confirmation page data (no supplier info)
+```
+
+- The client never sends prices. Paying happens only via the webhook, never the success page.
+- Approval stops without spending if the supplier is out of stock, the cost rose more
+  than 10%, the margin fell under the floor, or the address is unusable.
+- Items with no orderable supplier listing land in `MANUAL_REVIEW`.
+- Suppliers sit behind `SupplierAdapter` (`src/modules/suppliers`). Only a mock exists
+  until the Alibaba/AliExpress accounts get dropshipping API access.
+
+Local webhooks: install the Stripe CLI, then
+`stripe listen --forward-to localhost:4000/webhooks/stripe` and put the `whsec_...` it
+prints in `STRIPE_WEBHOOK_SECRET`. Pay with card `4242 4242 4242 4242`.
+
 ## Rate limiting and secrets
 
 - Every route is limited per client IP (`RATE_LIMIT_MAX`, default 120/min;

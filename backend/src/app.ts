@@ -1,6 +1,7 @@
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyError } from "fastify";
+import type Stripe from "stripe";
 import { ZodError } from "zod";
 import type { Db } from "./db/client.ts";
 import { catalogueRoutes } from "./modules/catalogue/catalogue.routes.ts";
@@ -9,8 +10,11 @@ import { productRoutes } from "./modules/products/products.routes.ts";
 import { ProductService } from "./modules/products/products.service.ts";
 import { roomRoutes } from "./modules/rooms/rooms.routes.ts";
 import { RoomService } from "./modules/rooms/rooms.service.ts";
+import { adminOrderRoutes, orderRoutes, stripeWebhookRoutes } from "./modules/orders/orders.routes.ts";
+import { OrderService } from "./modules/orders/orders.service.ts";
 import { adminSourcingRoutes } from "./modules/sourcing/sourcing.routes.ts";
 import { SourcingService } from "./modules/sourcing/sourcing.service.ts";
+import type { SupplierRegistry } from "./modules/suppliers/supplier-adapter.ts";
 
 export interface AppOptions {
   db: Db;
@@ -21,6 +25,14 @@ export interface AppOptions {
   trustProxy?: boolean;
   /** Enables /admin routes. Leave unset to disable them. */
   adminApiKey?: string;
+  /** Enables checkout, orders and fulfilment. */
+  payments?: {
+    stripe: Stripe;
+    /** Enables POST /webhooks/stripe. */
+    webhookSecret?: string;
+    suppliers: SupplierRegistry;
+    siteUrl: string;
+  };
 }
 
 /** Builds the app without listening, so tests can use app.inject(). */
@@ -31,6 +43,7 @@ export async function buildApp({
   rateLimitMax = 120,
   trustProxy = false,
   adminApiKey,
+  payments,
 }: AppOptions) {
   const app = Fastify({ logger, trustProxy });
 
@@ -67,8 +80,14 @@ export async function buildApp({
   await app.register(productRoutes(new ProductService(db)));
   await app.register(roomRoutes(new RoomService(db)));
   await app.register(catalogueRoutes(new CatalogueService(db)));
+  const orders = payments && new OrderService(db, payments.stripe, payments.suppliers, payments.siteUrl);
+  if (orders) {
+    await app.register(orderRoutes(orders));
+    if (payments.webhookSecret) await app.register(stripeWebhookRoutes(orders, payments.stripe, payments.webhookSecret));
+  }
   if (adminApiKey) {
     await app.register(adminSourcingRoutes(new SourcingService(db), adminApiKey), { prefix: "/admin" });
+    if (orders) await app.register(adminOrderRoutes(orders, adminApiKey), { prefix: "/admin" });
   }
 
   return app;

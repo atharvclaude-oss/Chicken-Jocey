@@ -61,13 +61,49 @@ export function CartView() {
           <span className="font-mono text-2xl tabular-nums">{formatPrice(subtotal)}</span>
         </div>
         <p className="mt-2 text-sm text-muted">Shipping and taxes are calculated at checkout.</p>
-        {/* TODO(week 4): checkout page with Stripe Elements; totals re-priced server-side. */}
-        <Button size="lg" className="mt-6 w-full" disabled>
-          Checkout
-        </Button>
-        <p className="mt-3 text-center text-xs text-muted">Checkout opens with the next release.</p>
+        <CheckoutButton items={items} />
       </aside>
     </div>
+  );
+}
+
+/** Sends only ids and quantities; the server prices the order and returns a Stripe Checkout URL. */
+function CheckoutButton({ items }: { items: CartItem[] }) {
+  const [state, setState] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
+
+  async function checkout() {
+    setState({ busy: true, error: null });
+    const lines = items.flatMap((i) =>
+      i.kind === "product"
+        ? [{ productId: i.productId, quantity: i.quantity }]
+        : i.products.map((p) => ({ productId: p.productId, quantity: 1 })),
+    );
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items: lines }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.url) throw new Error(body.error ?? "Checkout is unavailable right now.");
+      window.location.assign(body.url);
+    } catch (err) {
+      setState({ busy: false, error: err instanceof Error ? err.message : "Checkout is unavailable right now." });
+    }
+  }
+
+  return (
+    <>
+      <Button size="lg" className="mt-6 w-full" onClick={checkout} disabled={state.busy}>
+        {state.busy ? "Opening secure checkout…" : "Checkout"}
+      </Button>
+      {state.error && (
+        <p role="alert" className="mt-3 text-center text-sm text-red-600">
+          {state.error}
+        </p>
+      )}
+      <p className="mt-3 text-center text-xs text-muted">Payments are processed securely by Stripe.</p>
+    </>
   );
 }
 

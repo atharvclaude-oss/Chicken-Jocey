@@ -24,6 +24,12 @@ const schema = z.object({
     (v) => (v === "" ? undefined : v),
     z.string().min(32, "ADMIN_API_KEY must be at least 32 characters").optional(),
   ),
+  /** Stripe secret key. Use a test key (sk_test_/rk_test_) until the account is activated. Unset = checkout disabled. */
+  STRIPE_SECRET_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().startsWith("sk_").or(z.string().startsWith("rk_")).optional()),
+  /** Signing secret for POST /webhooks/stripe (whsec_...). Unset = webhook disabled. */
+  STRIPE_WEBHOOK_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().startsWith("whsec_").optional()),
+  /** Storefront origin, for Stripe's success/cancel redirects and product images. */
+  SITE_URL: z.string().url().default("http://localhost:3000"),
 });
 
 export const env = schema.parse(process.env);
