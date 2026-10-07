@@ -52,7 +52,7 @@ def extract_frames(video: Path, work: Path, target: int) -> Path:
     raw, images = work / "raw", work / "images"
     for d in (raw, images):
         shutil.rmtree(d, ignore_errors=True)
-        d.mkdir(parents=True)
+        d.mkdir(parents=True, exist_ok=True)
     # Oversample 3x, then keep the sharpest frame from each group of 3.
     fps = max(1.0, 3 * target / duration(video))
     run(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={fps:.3f},scale='if(gt(iw,ih),1600,-2)':'if(gt(iw,ih),-2,1600)'",

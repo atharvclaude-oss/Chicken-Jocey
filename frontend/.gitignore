@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Room scans: published splats and the scan manifest stay out of git
+public/models/splats/
+services/captured-scenes.json
