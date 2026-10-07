@@ -78,7 +78,7 @@ export function SceneCarousel({
 
 function Reel({ scenes, index, onPick }: { scenes: RoomScene[]; index: number; onPick: (i: number) => void }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-4 flex flex-col items-center gap-2 md:top-6">
+    <div className="pointer-events-none absolute inset-x-0 top-[5.5rem] flex flex-col items-center gap-2 md:top-28 lg:top-6">
       <div className="pointer-events-auto relative h-12 w-full max-w-xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_22%,#000_78%,transparent)]">
         <div
           className="absolute left-1/2 top-0 flex gap-2 transition-transform duration-700 ease-out"
