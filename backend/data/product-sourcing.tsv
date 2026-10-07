@@ -1,0 +1,22 @@
+product_slug	platform	kind	sku	url	option	notes
+gaming-chair	ALIEXPRESS	listing	GM-CHAIR-001		Black/White	Confirm a black/white colorway ships to the US.
+linen-throw-pillow	ALIEXPRESS	listing	WM-PILL-002		50x50 White	Cover only: source a 50x50 feather insert separately.
+oak-gallery-frame	ALIEXPRESS	listing	WM-FRAM-001		50x70	Check the white mount is included.
+arc-floor-lamp	ALIEXPRESS	listing		https://www.aliexpress.us/item/3256807252068840.html	Black	Candidate from search, not opened yet: arc lamp with adjustable hanging shade. Confirm black dome shade, weighted base, US plug; then add to sourcing.tsv.
+dome-pendant	ALIEXPRESS	listing		https://www.aliexpress.com/item/32964632672.html	30cm	Candidate from search, not opened yet: white milk-glass globe pendant, 30cm option. Then add to sourcing.tsv.
+living-pendant	ALIEXPRESS	listing		https://www.aliexpress.com/item/32964632672.html	35cm	Same globe pendant as dome-pendant, larger option. Confirm a 35cm size exists.
+living-vase	ALIEXPRESS	listing	WM-VASE-003		Ivory	Large Nordic ceramic vase from the sheet; closest match to the Poly Haven vase in the room. Check height (~40cm).
+tripod-table-lamp	ALIEXPRESS	search		https://www.aliexpress.com/w/wholesale-wooden%20tripod%20table%20lamp.html		~36cm wooden tripod lamp with a linen drum shade, US plug.
+cream-shag-rug	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-cream-rug-with-black-border.html		Plush cream rug with a black border, ~190x250cm. Check shipping weight.
+woven-wool-rug	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-tufted-wool-rug.html		Grey/sand check flat-weave, ~180x260cm. Plaid is uncommon: may need another supplier.
+faux-potted-plant	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-artificial-ficus-tree.html		~1.3m faux ficus. Pot is often sold separately.
+living-sofa	ALIBABA	search		https://www.alibaba.com/showroom/black-chesterfield-sofa.html		Black leather tufted 3-seater, ~220cm. Freight + MOQ: get a quote before listing.
+living-armchair	ALIBABA	search		https://www.alibaba.com/showroom/leather-lounge-chair.html		Black leather seat on an oak frame, ~80x80cm.
+living-coffee-table	ALIBABA	search		https://www.alibaba.com/showroom/oak-coffee-table.html		Low oak table with a stone top, ~120x60cm.
+living-side-table	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-oak-side-table.html		Two-tier solid oak side table, ~45cm.
+living-tv-stand	ALIBABA	search		https://www.alibaba.com/showroom/walnut-tv-console.html		Low walnut media console, ~160cm, soft-close drawers.
+living-bookshelf	ALIBABA	search		https://www.alibaba.com/showroom/oak-bookshelf.html		Five-shelf open oak bookcase, ~90x180cm.
+living-rug	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-plaid-wool-rug.html		Taupe/blush plaid wool rug, ~240x170cm.
+living-art	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-checkerboard-canvas-print.html		Checkerboard print 70x90cm; frame sourced with it or via an oak frame listing.
+living-plant-a	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-artificial-fern-potted.html		~45cm faux fern in a terracotta pot.
+living-plant-b	ALIEXPRESS	search		https://www.aliexpress.us/w/wholesale-artificial-monstera-potted.html		~70cm faux monstera in a terracotta pot.

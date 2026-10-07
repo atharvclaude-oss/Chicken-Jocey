@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ProductCategory } from "@shared/types";
 import { ProductCard } from "@/components/catalogue/ProductCard";
-import { categoryLabels, getProducts } from "@/services/products";
+import { categoryLabels, getProducts, getRoomsByProduct } from "@/services/products";
 import { getStyles } from "@/services/rooms";
 import { pluralize } from "@/utils/format";
 
@@ -18,7 +18,11 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
   const style = typeof params.style === "string" ? params.style : undefined;
   const category = isCategory(params.category) ? params.category : undefined;
 
-  const [styles, products] = await Promise.all([getStyles(), getProducts({ style, category })]);
+  const [styles, products, roomsByProduct] = await Promise.all([
+    getStyles(),
+    getProducts({ style, category }),
+    getRoomsByProduct(),
+  ]);
 
   const href = (next: { style?: string; category?: string }) => {
     const q = new URLSearchParams();
@@ -65,7 +69,7 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} roomId={roomsByProduct[p.id]?.[0]?.id} />
           ))}
         </div>
       )}

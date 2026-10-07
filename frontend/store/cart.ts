@@ -8,11 +8,21 @@ import type { CartItem, Product, RoomSummary } from "@shared/types";
 // are display snapshots; checkout must re-price on the server.
 
 type ProductLine = Extract<CartItem, { kind: "product" }>;
+
+/** Per-line cap; keeps a stuck key or bad input from creating absurd orders. */
+export const MAX_QUANTITY = 10;
+
+const clampQuantity = (n: number) => (Number.isFinite(n) ? Math.min(MAX_QUANTITY, Math.max(0, Math.floor(n))) : 0);
+
 type BundleLine = Extract<CartItem, { kind: "bundle" }>;
 
 interface CartState {
   items: CartItem[];
-  addProduct: (product: Product, source: ProductLine["source"]) => void;
+  /**
+   * Puts `quantity` of a product in the cart. If it's already there, its
+   * quantity is set rather than stacked, so a double click can't add it twice.
+   */
+  addProduct: (product: Product, source: ProductLine["source"], quantity?: number) => void;
   addBundle: (room: RoomSummary, products: Product[]) => void;
   setQuantity: (productId: string, quantity: number) => void;
   removeProduct: (productId: string) => void;
@@ -25,15 +35,14 @@ export const useCart = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      addProduct: (product, source) =>
+      addProduct: (product, source, quantity = 1) =>
         set((state) => {
-          const existing = state.items.find(
-            (i): i is ProductLine => i.kind === "product" && i.productId === product.id,
-          );
-          if (existing) {
+          const qty = Math.max(1, clampQuantity(quantity));
+          const exists = state.items.some((i) => i.kind === "product" && i.productId === product.id);
+          if (exists) {
             return {
               items: state.items.map((i) =>
-                i === existing ? { ...existing, quantity: existing.quantity + 1 } : i,
+                i.kind === "product" && i.productId === product.id ? { ...i, quantity: qty } : i,
               ),
             };
           }
@@ -43,7 +52,7 @@ export const useCart = create<CartState>()(
             name: product.name,
             image: product.image,
             priceCents: product.priceCents,
-            quantity: 1,
+            quantity: qty,
             source,
           };
           return { items: [...state.items, line] };
@@ -68,7 +77,9 @@ export const useCart = create<CartState>()(
       setQuantity: (productId, quantity) =>
         set((state) => ({
           items: state.items
-            .map((i) => (i.kind === "product" && i.productId === productId ? { ...i, quantity } : i))
+            .map((i) =>
+              i.kind === "product" && i.productId === productId ? { ...i, quantity: clampQuantity(quantity) } : i,
+            )
             .filter((i) => i.kind !== "product" || i.quantity > 0),
         })),
       removeProduct: (productId) =>

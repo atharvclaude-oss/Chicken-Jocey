@@ -7,7 +7,7 @@ import type { Product } from "@shared/types";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { buttonClass } from "@/components/common/Button";
 import { Panel } from "@/components/common/Panel";
-import { categoryLabels } from "@/services/products";
+import { categoryLabels } from "@/utils/categories";
 import { formatPrice, pluralize } from "@/utils/format";
 
 export function ProductDrawer({
@@ -28,9 +28,9 @@ export function ProductDrawer({
       title={product ? categoryLabels[product.category] : "Product"}
       footer={
         product && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
             <AddToCartButton product={product} source="room" roomId={roomId} className="w-full" />
-            <Link href={`/products/${product.slug}`} className={buttonClass({ variant: "secondary", size: "lg", className: "w-full" })}>
+            <Link href={`/products/${product.slug}`} className={buttonClass({ variant: "ghost", size: "md", className: "w-full" })}>
               View details
             </Link>
           </div>
