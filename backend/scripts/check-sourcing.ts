@@ -73,7 +73,7 @@ for (const scene of scenes) {
       warnings.push(`${productId}: search link only, pick an exact ${source.platform} listing`);
     } else if (source.unitCostCents === null) {
       warnings.push(`${productId}: listing has no unit cost yet`);
-    } else if (source.inStock === false) {
+    } else if (source.stock === 0) {
       warnings.push(`${productId}: CJ listing was out of stock when last checked`);
     }
     rows.push([scene.id, node, productId, source ? `${source.platform} ${source.kind}` : "coming soon", source?.url ?? ""]);

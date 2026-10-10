@@ -2,15 +2,17 @@
 
 ## CJdropshipping (current path)
 
-Every object in every 3D room is a product (`frontend/services/room-catalog.json`: glTF object name -> product). Each product is fulfilled by one exact CJdropshipping product + variant, bought through the CJ API after the customer pays.
+Every product is fulfilled by one exact CJdropshipping product + variant: the lamp collections and every object in the 3D rooms (`frontend/services/room-catalog.json` maps each glTF object to a product). One pipeline handles both:
 
-1. Put the CJ API key in `backend/.env` as `CJ_API_KEY` (cjdropshipping.com > My CJ > Authorization > API).
-2. `npm run cj:search` (in `backend/`): searches CJ for every product without a listing (keywords in `data/cj-search.json`) and writes a visual review page, `data/cj-candidates/index.html`.
-3. Pick the exact match per product into `data/cj-picks.json` as `{ "<product id>": { "pid": "...", "vid": "..." } }`.
-4. `npm run cj:apply`: re-checks each variant on CJ, takes the cheapest US shipping, prices at the 2x floor, saves the photo, and writes `data/cj-listings.tsv` (private: CJ ids and costs) plus `frontend/services/catalog-offers.json` (public: price, photo, shipping window). Re-run any time to refresh prices and stock.
+1. `CJ_API_KEY` in `backend/.env` (cjdropshipping.com > My CJ > Authorization > API).
+2. Find a product: `npm run cj:search -- <product id>` (in `backend/`) searches CJ with the keywords in `data/cj-search.json` and writes a visual review page, `data/cj-candidates/index.html`. Only pick listings CJ can ship to the US.
+3. Add the pick to `data/product-sourcing.tsv` as a `CJDROPSHIPPING` `listing`: its CJ product URL and, in `option`, the variant name exactly as CJ shows it. One CJ variant can back only one product.
+4. `npm run fetch-cj -- <slug prefix> --apply` verifies it on CJ (on sale, exact variant, stock) and finds the best route to the US: CJ's US warehouse first (furniture often ships only, and free, from there), then China and CJ's other warehouses, preferring delivery within 20 days. It writes cost, shipping and stock to `data/cj-variants.tsv` (private), price, delivery and photo to `frontend/services/lamp-offers.ts` (public), and the photo to `frontend/public/images/products/`. Retail is the 2x floor on item + shipping.
 5. `npm run db:seed` loads the listings; `npm run check-sourcing` confirms every room object maps to a product with a listing.
 
-Until a product is applied it shows as "coming soon": clickable in the room and listed in the room's featured catalogue (`/rooms/<room id>`), but not buyable. Paid orders wait for admin approval; approval re-checks CJ's live price and stock, then places the CJ order (paid from the CJ balance) via `src/modules/suppliers/cj-adapter.ts`.
+Until a room product is imported it shows as "coming soon": clickable in its room and listed in the room's featured catalogue (`/rooms/<room id>`), not buyable. Paid orders wait for admin approval; approval re-checks CJ's live stock and price and creates the CJ order **unpaid**, shipped from the best warehouse. Pay it in the CJ dashboard (My CJ > Orders); tracking comes back from CJ.
+
+Room products with no US-shippable match on CJ yet: 27-inch monitor, grandfather clock, framed oil portrait, checkerboard print, two-drawer nightstand, zebra roller blind, wingback armchair, velvet curtains.
 
 ## Older marketplace sourcing (AliExpress / Alibaba)
 

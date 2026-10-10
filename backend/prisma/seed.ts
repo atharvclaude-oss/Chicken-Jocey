@@ -8,7 +8,7 @@
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
-import { products, styles } from "../../frontend/services/mock-data.ts";
+import { departments, products, styles } from "../../frontend/services/mock-data.ts";
 import { scenes } from "../../frontend/services/scenes.ts";
 import { categoryLabels } from "../../frontend/utils/categories.ts";
 import { PrismaClient } from "../src/generated/prisma/client.ts";
@@ -102,13 +102,17 @@ async function main() {
     const supplierId = supplierIds.get(platform)!;
 
     // Costs stay 0 until filled in sourcing.tsv; UNKNOWN availability keeps
-    // fulfilment from ordering an unchecked listing.
+    // fulfilment from ordering an unchecked listing. Imported CJ variants carry
+    // live stock, so they are orderable (or out of stock) straight away.
+    const checked =
+      source.stock === null ? {} : { availability: source.stock > 0 ? Availability.AVAILABLE : Availability.OUT_OF_STOCK, lastCheckedAt: new Date() };
     const data = {
       variantId: ids.variantId,
       url: source.url,
       unitCostCents: source.unitCostCents ?? 0,
       shippingCostCents: source.shippingCostCents ?? 0,
       priority: 1,
+      ...checked,
     };
     const previous = await db.supplierProduct.findUnique({
       where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
@@ -116,14 +120,7 @@ async function main() {
     const listing = await db.supplierProduct.upsert({
       where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
       update: data,
-      // API-checked listings (CJ) carry their stock check; marketplace links stay UNKNOWN until verified.
-      create: {
-        supplierId,
-        supplierSku: source.supplierSku,
-        availability: source.inStock === undefined ? Availability.UNKNOWN : source.inStock ? Availability.AVAILABLE : Availability.OUT_OF_STOCK,
-        estimatedDeliveryDays: source.deliveryDays ?? null,
-        ...data,
-      },
+      create: { supplierId, supplierSku: source.supplierSku, availability: Availability.UNKNOWN, ...data },
     });
     // Drop listings the sheet no longer routes this variant to.
     await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId, id: { not: listing.id } } });
@@ -140,6 +137,24 @@ async function main() {
       });
     }
     listings++;
+  }
+
+  // Merchandising collections (e.g. the lamp collections), published in catalogue order.
+  let collections = 0;
+  for (const dept of departments) {
+    for (const [i, c] of dept.collections.entries()) {
+      const data = { name: c.name, description: c.description, coverImage: c.coverImage, isPublished: true, sortOrder: i };
+      const row = await db.collection.upsert({ where: { slug: c.slug }, update: data, create: { slug: c.slug, ...data } });
+      await db.collectionProduct.deleteMany({ where: { collectionId: row.id } });
+      await db.collectionProduct.createMany({
+        data: c.productIds.map((id, position) => {
+          const ids = productIds.get(id);
+          if (!ids) throw new Error(`mock-data: collection ${c.slug} lists unknown product ${id}`);
+          return { collectionId: row.id, productId: ids.productId, position };
+        }),
+      });
+      collections++;
+    }
   }
 
   // 3D rooms. Each tagged object's glTF productId is its scene object id. They
@@ -191,7 +206,7 @@ async function main() {
 
   console.log(
     `Seeded ${categoryIds.size} categories, ${styleIds.size} styles, ${productIds.size} products, ` +
-      `${listings} supplier listings, ${scenes.length} rooms.`,
+      `${listings} supplier listings, ${collections} collections, ${scenes.length} rooms.`,
   );
 }
 

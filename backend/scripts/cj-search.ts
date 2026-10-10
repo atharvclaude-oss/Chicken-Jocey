@@ -8,8 +8,10 @@
 // For each product it searches CJ with the keywords in data/cj-search.json, then
 // pulls full details (exact variants, prices, stock, images) for the top
 // matches. Results go to data/cj-candidates/<product>.json plus a visual review
-// page, data/cj-candidates/index.html. Pick the exact match per product (pid +
-// vid) into data/cj-picks.json, then run `npm run cj:apply`.
+// page, data/cj-candidates/index.html. Add the exact match to
+// data/product-sourcing.tsv as a CJDROPSHIPPING listing (its CJ product URL, and
+// the variant name exactly as CJ shows it in `option`), then
+// `npm run fetch-cj -- <product id> --apply` imports cost, stock, photo and price.
 //
 // Needs CJ_API_KEY in backend/.env. CJ allows 1 request per second, so a full
 // run (~50 products) takes several minutes.
@@ -17,8 +19,8 @@
 import "dotenv/config";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { CjClient, shipFrom, type CjProduct } from "../src/modules/suppliers/cj-client.ts";
-import { DATA_DIR, parseCjListingRows } from "../src/modules/sourcing/sourcing-sheet.ts";
+import { CjClient, cjStock, type CjProduct } from "../src/modules/suppliers/cj.ts";
+import { DATA_DIR, loadProductSourcing } from "../src/modules/sourcing/sourcing-sheet.ts";
 
 const CATALOG = fileURLToPath(new URL("../../frontend/services/room-catalog.json", import.meta.url));
 const OUT = `${DATA_DIR}cj-candidates/`;
@@ -37,7 +39,7 @@ export interface Candidate {
   name: string;
   image: string;
   url: string;
-  variants: { vid: string; key: string; priceUsd: number; image: string; stock: number | null; shipFrom: string; sizeMm: string }[];
+  variants: { vid: string; key: string; priceUsd: number; image: string; stock: number; sizeMm: string }[];
 }
 
 export const cjProductUrl = (pid: string) => `https://cjdropshipping.com/product/-p-${pid}.html`;
@@ -49,14 +51,12 @@ export function toCandidate(p: CjProduct): Candidate {
     image: p.bigImage,
     url: cjProductUrl(p.pid),
     variants: (p.variants ?? []).map((v) => {
-      const from = shipFrom(v);
       return {
         vid: v.vid,
         key: v.variantKey || v.variantNameEn || "",
         priceUsd: Number(v.variantSellPrice),
         image: v.variantImage || p.bigImage,
-        stock: from.stock,
-        shipFrom: from.countryCode,
+        stock: cjStock(v),
         sizeMm: [v.variantLength, v.variantWidth, v.variantHeight].every(Boolean)
           ? `${v.variantLength}x${v.variantWidth}x${v.variantHeight}`
           : "",
@@ -105,11 +105,11 @@ async function main() {
     ids ? ids.has(p.id) : p.id.startsWith(prefix),
   );
   const keywords = JSON.parse(readFileSync(`${DATA_DIR}cj-search.json`, "utf8")) as Record<string, string>;
-  const listed = new Set(parseCjListingRows(readFileSync(`${DATA_DIR}cj-listings.tsv`, "utf8")).map((r) => r.product_slug));
+  const listed = new Set(loadProductSourcing().filter((s) => s.platform === "CJDROPSHIPPING" && s.kind === "listing").map((s) => s.productSlug));
   const todo = products.filter((p) => refresh || !listed.has(p.id));
 
   mkdirSync(OUT, { recursive: true });
-  const cj = new CjClient(apiKey, { tokenFile: fileURLToPath(new URL("../.cj-token.json", import.meta.url)) });
+  const cj = new CjClient(apiKey);
   console.log(`Searching CJ for ${todo.length} products (${products.length - todo.length} already listed)...`);
 
   for (const [i, p] of todo.entries()) {
@@ -127,7 +127,7 @@ async function main() {
     }
   }
   writeReviewPage(products);
-  console.log(`\nReview: ${OUT}index.html\nThen record picks in data/cj-picks.json and run npm run cj:apply.`);
+  console.log(`\nReview: ${OUT}index.html\nThen add picks to data/product-sourcing.tsv and run npm run fetch-cj -- <id> --apply.`);
 }
 
 const isMain = process.argv[1]?.replace(/\\/g, "/").endsWith("scripts/cj-search.ts");

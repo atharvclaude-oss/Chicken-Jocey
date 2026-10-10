@@ -30,9 +30,9 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().startsWith("whsec_").optional()),
   /**
    * CJdropshipping API key (CJ dashboard > Authorization > API). Server-side only.
-   * Unset = CJ listings fall back to the mock supplier (no real orders).
+   * Set = CJ listings are checked and ordered through CJ's API; unset = mock supplier.
    */
-  CJ_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(10).optional()),
+  CJ_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
   /** Storefront origin, for Stripe's success/cancel redirects and product images. */
   SITE_URL: z.string().url().default("http://localhost:3000"),
 });

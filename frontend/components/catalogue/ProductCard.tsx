@@ -31,12 +31,12 @@ export function ProductCard({
             </div>
           )}
         </div>
-        <div className="mt-3 flex items-baseline justify-between gap-3">
+        <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
           <h3 className="text-[15px] font-medium leading-snug">{product.name}</h3>
-          <p className="shrink-0 font-mono text-sm tabular-nums">{product.comingSoon ? "Soon" : formatPrice(product.priceCents)}</p>
+          <p className="shrink-0 font-mono text-sm tabular-nums">{product.comingSoon ? "Soon" : product.priceCents > 0 ? formatPrice(product.priceCents) : "Price soon"}</p>
         </div>
         <p className="mt-1 text-[13px] text-muted">
-          {styleName(product.styles[0])} · {categoryLabels[product.category]}
+          {[product.styles[0] && styleName(product.styles[0]), categoryLabels[product.category]].filter(Boolean).join(" · ")}
         </p>
       </Link>
       {roomId && (

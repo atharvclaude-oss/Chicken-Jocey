@@ -1,22 +1,13 @@
-// The product catalogue: every object in every 3D room (room-catalog.json),
-// merged with the public half of its CJdropshipping listing (catalog-offers.json,
-// written by backend `npm run cj:apply`). A product with no offer yet is
-// "coming soon": clickable in the room, shown in the catalogue, not buyable.
-// Supplier ids and costs are never in either file (backend/data/cj-listings.tsv).
+// Room products: every object in every 3D room (room-catalog.json). Price, photo, stock and
+// delivery come from the same generated CJ offers as the lamps (lamp-offers.ts, written by
+// `npm run fetch-cj -- <id> --apply` in backend/ for each CJDROPSHIPPING row in
+// backend/data/product-sourcing.tsv). A product with no offer yet is "coming soon":
+// clickable in its room and listed in its featured catalogue, but not buyable.
+// Supplier ids and costs never reach this file.
 
 import type { Product, ProductCategory } from "@shared/types";
+import { lampOffers } from "./lamp-offers";
 import roomCatalog from "./room-catalog.json";
-import offers from "./catalog-offers.json";
-
-export interface CatalogOffer {
-  priceCents: number;
-  image: string;
-  shippingEstimate: string;
-  available: boolean;
-  /** Variant actually sold, e.g. "Black / 27 in". */
-  color?: string;
-  dimensions?: string;
-}
 
 interface CatalogEntry {
   id: string;
@@ -25,22 +16,22 @@ interface CatalogEntry {
   styles: string[];
   color: string;
   description: string;
+  /** The product's own size, when known. */
   dimensions: string;
 }
 
-const offerFor = (id: string) => (offers as Record<string, CatalogOffer>)[id];
-
 export const catalogProducts: Product[] = (roomCatalog.products as CatalogEntry[]).map((p) => {
-  const offer = offerFor(p.id);
+  const offer = lampOffers[p.id];
   return {
     id: p.id,
     slug: p.id,
     name: p.name,
     category: p.category,
     styles: p.styles,
-    color: offer?.color || p.color,
+    color: p.color,
     description: p.description,
-    dimensions: offer?.dimensions || p.dimensions,
+    // Our own measured size only: CJ's boxed size is sometimes placeholder data on furniture.
+    dimensions: p.dimensions,
     priceCents: offer?.priceCents ?? 0,
     image: offer?.image ?? "",
     shippingEstimate: offer?.shippingEstimate ?? "",

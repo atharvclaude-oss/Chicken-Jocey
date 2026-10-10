@@ -1,0 +1,9 @@
+[
+ {
+  "slug": "lamps",
+  "model": "desk_lamp_arm_01",
+  "out": "../frontend/public/images/catalogue/lamps.jpg",
+  "heading": 15,
+  "tilt": 10
+ }
+]

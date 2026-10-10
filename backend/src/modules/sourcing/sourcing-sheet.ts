@@ -2,12 +2,11 @@
 //
 //   data/product-sourcing.tsv   which supplier listing fulfils each product (one row per product)
 //   data/sourcing.tsv           the priced AliExpress sheet; `sku` rows above pull item id and cost from here
-//   data/cj-listings.tsv        exact CJdropshipping product + variant per product (written by `npm run cj:apply`);
-//                               a CJ row takes precedence over a product-sourcing.tsv row for the same product
+//   data/cj-variants.tsv        written by `npm run fetch-cj`: CJ variant id, live cost, US shipping and stock
 //
 // Pure parsing lives here so the seed, the check script and tests share it.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export type SourcingPlatform = "ALIEXPRESS" | "ALIBABA" | "CJDROPSHIPPING" | "DISTRIBUTOR" | "OTHER";
@@ -30,17 +29,51 @@ export interface ProductSourcing {
   supplierSku: string | null;
   /** Option to choose on the listing (size, colour). */
   option: string;
-  /** Null until someone fills the cost in data/sourcing.tsv. */
+  /** Null until someone fills the cost in data/sourcing.tsv (or fetch-cj ingests it). */
   unitCostCents: number | null;
   shippingCostCents: number | null;
+  /** Units the supplier reported in stock at the last import. Null = never checked. */
+  stock: number | null;
   notes: string;
-  /** CJ only: in stock when last checked, and the delivery window in days. */
-  inStock?: boolean;
-  deliveryDays?: number | null;
 }
 
+/** One row of data/cj-variants.tsv: the exact CJ variant a product is fulfilled with. */
+export interface CjVariantRow {
+  productSlug: string;
+  pid: string;
+  vid: string;
+  variantKey: string;
+  unitCostCents: number;
+  shippingCostCents: number;
+  logistic: string;
+  deliveryDays: string;
+  stock: number;
+  /** CJ's packed size, e.g. "33 x 5.2 x 5.2" (cm), and packed weight in kg. */
+  packageCm: string;
+  weightKg: number;
+  /** Storefront photo path, named by content hash so a new photo is never served from cache. */
+  image: string;
+  checkedAt: string;
+}
+
+export const CJ_VARIANT_COLUMNS = [
+  "product_slug",
+  "pid",
+  "vid",
+  "variant_key",
+  "unit_cost_usd",
+  "shipping_usd",
+  "logistic",
+  "delivery_days",
+  "stock",
+  "package_cm",
+  "weight_kg",
+  "image",
+  "checked_at",
+] as const;
+
 const PRODUCT_COLUMNS = ["product_slug", "platform", "kind", "sku", "url", "option", "notes"] as const;
-const PLATFORMS: SourcingPlatform[] = ["ALIEXPRESS", "ALIBABA", "DISTRIBUTOR", "OTHER"];
+const PLATFORMS: SourcingPlatform[] = ["ALIEXPRESS", "ALIBABA", "CJDROPSHIPPING", "DISTRIBUTOR", "OTHER"];
 
 export const DATA_DIR = fileURLToPath(new URL("../../../data/", import.meta.url));
 
@@ -84,13 +117,43 @@ export function parsePriceSheet(text: string): Map<string, SheetRow> {
 const itemIdFromUrl = (url: string) =>
   url.match(/aliexpress\.[a-z.]+\/(?:item|i)\/(\d+)\.html/)?.[1] ??
   url.match(/alibaba\.com\/product-detail\/[^?]*?_(\d+)\.html/)?.[1] ??
+  url.match(/cjdropshipping\.com\/product\/[^?]*-p-([0-9A-Za-z-]+)\.html/)?.[1] ??
   null;
 
 /**
  * Resolves data/product-sourcing.tsv against the price sheet. Throws with every
  * problem listed, so a bad edit fails the seed instead of shipping wrong links.
  */
-export function parseProductSourcing(text: string, sheet: Map<string, SheetRow>): ProductSourcing[] {
+export function parseCjVariants(text: string): Map<string, CjVariantRow> {
+  const { header, rows } = parseTsv(text);
+  if (header.join() !== CJ_VARIANT_COLUMNS.join()) throw new Error(`cj-variants.tsv: expected columns ${CJ_VARIANT_COLUMNS.join(", ")}`);
+  const out = new Map<string, CjVariantRow>();
+  for (const { cells } of rows) {
+    const [productSlug, pid, vid, variantKey, unit, ship, logistic, deliveryDays, stock, packageCm, weight, image, checkedAt] = cells as string[];
+    out.set(productSlug!, {
+      productSlug: productSlug!,
+      pid: pid!,
+      vid: vid!,
+      variantKey: variantKey!,
+      unitCostCents: toCents(unit!) ?? 0,
+      shippingCostCents: toCents(ship!) ?? 0,
+      logistic: logistic!,
+      deliveryDays: deliveryDays!,
+      stock: Number(stock) || 0,
+      packageCm: packageCm ?? "",
+      weightKg: Number(weight) || 0,
+      image: image ?? "",
+      checkedAt: checkedAt!,
+    });
+  }
+  return out;
+}
+
+export function parseProductSourcing(
+  text: string,
+  sheet: Map<string, SheetRow>,
+  cj: Map<string, CjVariantRow> = new Map(),
+): ProductSourcing[] {
   const { header, rows } = parseTsv(text);
   if (header.join() !== PRODUCT_COLUMNS.join()) {
     throw new Error(`product-sourcing.tsv: expected columns ${PRODUCT_COLUMNS.join(", ")}`);
@@ -125,8 +188,8 @@ export function parseProductSourcing(text: string, sheet: Map<string, SheetRow>)
         shippingCostCents = row.shippingCostCents;
       }
     }
-    if (!/^https:\/\/([a-z0-9-]+\.)*(aliexpress\.(com|us)|alibaba\.com)\//.test(url) && platform !== "DISTRIBUTOR" && platform !== "OTHER") {
-      errors.push(`${at}: url must be an https AliExpress/Alibaba link, got "${url}"`);
+    if (!/^https:\/\/([a-z0-9-]+\.)*(aliexpress\.(com|us)|alibaba\.com|cjdropshipping\.com)\//.test(url) && platform !== "DISTRIBUTOR" && platform !== "OTHER") {
+      errors.push(`${at}: url must be an https AliExpress/Alibaba/CJdropshipping link, got "${url}"`);
     }
 
     let supplierSku: string | null = null;
@@ -136,48 +199,20 @@ export function parseProductSourcing(text: string, sheet: Map<string, SheetRow>)
       supplierSku = itemId && (option ? `${itemId}:${option}` : itemId);
     }
 
-    out.push({ productSlug: productSlug!, platform, kind, sku, url, supplierSku, option: option!, unitCostCents, shippingCostCents, notes: notes! });
+    // CJ orders by variant id, so an imported CJ variant replaces the item:option key and brings its costs.
+    let stock: number | null = null;
+    const variant = platform === "CJDROPSHIPPING" ? cj.get(productSlug!) : undefined;
+    if (variant) {
+      if (variant.variantKey !== option) errors.push(`${at}: cj-variants.tsv has "${variant.variantKey}" but the option is "${option}"; re-run fetch-cj`);
+      supplierSku = variant.vid;
+      unitCostCents = variant.unitCostCents;
+      shippingCostCents = variant.shippingCostCents;
+      stock = variant.stock;
+    }
+
+    out.push({ productSlug: productSlug!, platform, kind, sku, url, supplierSku, option: option!, unitCostCents, shippingCostCents, stock, notes: notes! });
   }
 
-  if (errors.length) throw new Error(errors.join("\n"));
-  return out;
-}
-
-export const CJ_COLUMNS = [
-  "product_slug", "pid", "vid", "variant", "unit_cost_usd", "shipping_usd", "logistic", "ship_from",
-  "delivery_days", "in_stock", "url", "checked_at", "notes",
-] as const;
-export type CjListingRow = Record<(typeof CJ_COLUMNS)[number], string>;
-
-/** data/cj-listings.tsv rows, keyed by column name. */
-export function parseCjListingRows(text: string): CjListingRow[] {
-  const { header, rows } = parseTsv(text);
-  if (header.join() !== CJ_COLUMNS.join()) throw new Error(`cj-listings.tsv: expected columns ${CJ_COLUMNS.join(", ")}`);
-  return rows.map(({ cells }) => Object.fromEntries(CJ_COLUMNS.map((c, i) => [c, cells[i] ?? ""])) as CjListingRow);
-}
-
-/** CJ rows as ProductSourcing listings (supplierSku = "<pid>:<vid>"). */
-export function parseCjListings(text: string): ProductSourcing[] {
-  const errors: string[] = [];
-  const out = parseCjListingRows(text).map((r, i): ProductSourcing => {
-    const at = `cj-listings.tsv row ${i + 2} (${r.product_slug})`;
-    if (!r.pid || !r.vid) errors.push(`${at}: pid and vid are required`);
-    const days = r.delivery_days.match(/(\d+)\s*$/)?.[1];
-    return {
-      productSlug: r.product_slug,
-      platform: "CJDROPSHIPPING",
-      kind: "listing",
-      sku: null,
-      url: r.url,
-      supplierSku: `${r.pid}:${r.vid}`,
-      option: r.variant,
-      unitCostCents: toCents(r.unit_cost_usd),
-      shippingCostCents: toCents(r.shipping_usd) ?? 0,
-      notes: [r.logistic && `Ships ${r.ship_from || "CN"} via ${r.logistic}`, r.notes].filter(Boolean).join(". "),
-      inStock: r.in_stock !== "no",
-      deliveryDays: days ? Number(days) : null,
-    };
-  });
   if (errors.length) throw new Error(errors.join("\n"));
   return out;
 }
@@ -185,14 +220,6 @@ export function parseCjListings(text: string): ProductSourcing[] {
 /** Reads and resolves the data files from backend/data. */
 export function loadProductSourcing(dir = DATA_DIR): ProductSourcing[] {
   const sheet = parsePriceSheet(readFileSync(`${dir}sourcing.tsv`, "utf8"));
-  const marketplace = parseProductSourcing(readFileSync(`${dir}product-sourcing.tsv`, "utf8"), sheet);
-  let cj: ProductSourcing[] = [];
-  try {
-    cj = parseCjListings(readFileSync(`${dir}cj-listings.tsv`, "utf8"));
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
-  }
-  const bySlug = new Map(marketplace.map((s) => [s.productSlug, s]));
-  for (const row of cj) bySlug.set(row.productSlug, row);
-  return [...bySlug.values()];
+  const cj = existsSync(`${dir}cj-variants.tsv`) ? parseCjVariants(readFileSync(`${dir}cj-variants.tsv`, "utf8")) : new Map();
+  return parseProductSourcing(readFileSync(`${dir}product-sourcing.tsv`, "utf8"), sheet, cj);
 }

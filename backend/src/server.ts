@@ -2,18 +2,14 @@ import Stripe from "stripe";
 import { buildApp } from "./app.ts";
 import { env } from "./config/env.ts";
 import { prisma } from "./db/client.ts";
-import { fileURLToPath } from "node:url";
+import { CjClient } from "./modules/suppliers/cj.ts";
 import { CjSupplierAdapter } from "./modules/suppliers/cj-adapter.ts";
-import { CjClient } from "./modules/suppliers/cj-client.ts";
-import { MockSupplierAdapter, type SupplierRegistry } from "./modules/suppliers/supplier-adapter.ts";
+import { MockSupplierAdapter } from "./modules/suppliers/supplier-adapter.ts";
 
-// CJdropshipping listings order through the CJ API when CJ_API_KEY is set.
-// Other platforms (and CJ without a key) "buy" at the cost on file.
+// CJ listings go through CJ's API when a key is set. Platforms without an API
+// adapter yet "buy" at the cost on file.
 const mockSuppliers = new MockSupplierAdapter();
-const cjSuppliers = env.CJ_API_KEY
-  ? new CjSupplierAdapter(new CjClient(env.CJ_API_KEY, { tokenFile: fileURLToPath(new URL("../.cj-token.json", import.meta.url)) }))
-  : null;
-const suppliers: SupplierRegistry = (platform) => (platform === "CJDROPSHIPPING" && cjSuppliers) || mockSuppliers;
+const cjSupplier = env.CJ_API_KEY ? new CjSupplierAdapter(new CjClient(env.CJ_API_KEY)) : null;
 
 const app = await buildApp({
   db: prisma,
@@ -28,7 +24,7 @@ const app = await buildApp({
         webhookSecret: env.STRIPE_WEBHOOK_SECRET,
         siteUrl: env.SITE_URL,
         // TODO(suppliers): real Alibaba / AliExpress adapters once those accounts have API access.
-        suppliers,
+        suppliers: (platform) => (platform === "CJDROPSHIPPING" && cjSupplier) || mockSuppliers,
       }
     : undefined,
 });

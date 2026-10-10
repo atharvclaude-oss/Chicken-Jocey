@@ -79,6 +79,8 @@ export class OrderService {
         metadata: { orderId: order.id },
         payment_intent_data: { metadata: { orderId: order.id } },
         shipping_address_collection: { allowed_countries: ["US"] },
+        // Suppliers (CJ) need a phone number for the courier.
+        phone_number_collection: { enabled: true },
         line_items: lines.map((l) => ({
           quantity: l.quantity,
           price_data: {
@@ -235,7 +237,7 @@ export class OrderService {
     await this.db.$transaction([
       this.db.fulfillment.update({
         where: { id },
-        data: { status: FulfillmentStatus.SUPPLIER_ORDER_CREATED, supplierOrderId: placed.supplierOrderId, actualCostCents: placed.costCents, note: "" },
+        data: { status: FulfillmentStatus.SUPPLIER_ORDER_CREATED, supplierOrderId: placed.supplierOrderId, actualCostCents: placed.costCents, note: placed.note ?? "" },
       }),
       this.db.order.update({ where: { id: f.orderId }, data: { status: OrderStatus.FULFILLING } }),
     ]);

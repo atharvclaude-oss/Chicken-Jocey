@@ -1,5 +1,5 @@
 {
-  "_about": "Every object in every 3D room, mapped to a product. `rooms` maps glTF root node names (a name also matches its `<name>_...` children, e.g. a blind's cassette) to product ids. Products start as coming-soon; backend `npm run cj:apply` fills price, image and availability from the chosen CJdropshipping listing. Supplier ids and costs never live here: see backend/data/cj-listings.tsv.",
+  "_about": "Every object in every 3D room, mapped to a product. `rooms` maps glTF root node names (a name also matches its `<name>_...` children, e.g. a blind's cassette) to product ids. A product is coming-soon until its CJdropshipping listing (backend/data/product-sourcing.tsv) is imported with `npm run fetch-cj -- <id> --apply`, which writes its price, photo and stock to lamp-offers.ts. Supplier ids and costs never live here.",
   "products": [
     {
       "id": "walnut-media-console",
@@ -42,20 +42,10 @@
       "name": "Faux Ficus Tree",
       "category": "decor",
       "styles": [
+        "gaming-minimal",
+        "neocolonial",
         "sleek-masculine",
-        "warm-minimal",
-        "neocolonial"
-      ],
-      "color": "Green",
-      "description": "Five-foot artificial ficus tree in a weighted black pot.",
-      "dimensions": "5 ft"
-    },
-    {
-      "id": "leafy-floor-plant",
-      "name": "Faux Ficus Tree",
-      "category": "decor",
-      "styles": [
-        "gaming-minimal"
+        "warm-minimal"
       ],
       "color": "Green",
       "description": "Five-foot artificial ficus tree in a weighted black pot.",
@@ -600,7 +590,7 @@
       "office_chair_10": "racing-gaming-chair",
       "cabinet_11": "oak-wardrobe",
       "framed_print_12": "arc-abstract-print",
-      "potted_plant_01_13": "leafy-floor-plant",
+      "potted_plant_01_13": "tall-potted-plant",
       "ceiling_light_14": "recessed-downlight",
       "ceiling_light_15": "recessed-downlight",
       "window_front_0_blind": "zebra-roller-blind",
