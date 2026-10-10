@@ -106,6 +106,30 @@ export const scenes: RoomScene[] = [
     walkStart: { x: 0.7, y: 0.5, lookAt: { x: 3.0, y: 3.0 } },
     productIds: ["linen-throw-pillow", "tripod-table-lamp", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
   },
+  {
+    // Designed room, Sketchfab CC-BY furniture (see /credits): 3d-engine/rooms/neocolonial-parlour-01.json
+    id: "neocolonial-parlour-01",
+    name: "Colonial Parlour",
+    style: "Neocolonial",
+    styleSlug: "neocolonial",
+    model: "/models/neocolonial-parlour-01.glb?v=1", // bump when the .glb changes so browsers refetch
+    background: "/models/neocolonial-parlour-01-view.jpg",
+    backgroundRotation: 100,
+    size: { width: 5.6, depth: 4.8, height: 3.0 },
+    walkStart: { x: 2.8, y: 0.5, lookAt: { x: 2.8, y: 4.0 } },
+    productIds: [
+      "neo-chesterfield-sofa",
+      "neo-wingback-chair",
+      "neo-coffee-table",
+      "neo-persian-rug",
+      "neo-side-table",
+      "neo-tiffany-lamp",
+      "neo-chandelier",
+      "neo-oil-portrait",
+      "neo-damask-curtains",
+      "neo-library-bookcase",
+    ],
+  },
 ];
 
 export async function getScenes(): Promise<RoomScene[]> {

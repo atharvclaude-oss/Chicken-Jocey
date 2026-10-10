@@ -36,6 +36,12 @@ export const styles: RoomStyle[] = [
     tagline: "Hotel-suite calm with a few loud pieces.",
     coverImage: "/images/rooms/gallery-suite.jpg",
   },
+  {
+    slug: "neocolonial",
+    name: "Neocolonial",
+    tagline: "Leather, mahogany and firelight, done with restraint.",
+    coverImage: "/images/rooms/neocolonial-parlour.jpg",
+  },
 ];
 
 const p = (
@@ -134,4 +140,26 @@ export const products: Product[] = [
     "Leafy potted plant in a terracotta pot. Placeholder listing.", "45 cm tall", false),
   p("living-plant-b", "Potted Monstera Plant", 5900, "decor", ["warm-minimal", "sleek-masculine"], "Green",
     "Large-leaf potted plant in a terracotta pot. Placeholder listing.", "70 cm tall", false),
+  // Colonial Parlour (3d-engine/rooms/neocolonial-parlour-01.json). Placeholder prices and copy until
+  // each supplier listing is verified (backend/data/product-sourcing.tsv); unavailable until then.
+  p("neo-wingback-chair", "Tufted Leather Wingback Chair", 79900, "seating", ["neocolonial", "dark-academia"], "Racing green",
+    "Deep-buttoned wingback in green faux leather with brass nailhead trim and turned walnut legs.", "80 x 85 x 115 cm", false),
+  p("neo-chesterfield-sofa", "Chesterfield Leather Loveseat", 149900, "seating", ["neocolonial", "dark-academia"], "Chestnut brown",
+    "Hand-tufted rolled-arm loveseat in brown faux leather, on turned wooden feet.", "210 x 95 x 78 cm", false),
+  p("neo-coffee-table", "Carved Walnut Coffee Table", 34900, "furniture", ["neocolonial", "dark-academia"], "Dark walnut",
+    "Turned legs and a carved fretwork apron under a solid dark-stained top.", "102 x 47 x 46 cm", false),
+  p("neo-side-table", "Marble-Top Victorian Side Table", 27900, "furniture", ["neocolonial", "dark-academia"], "Walnut and cream marble",
+    "Round cream marble top on carved cabriole legs. Sized for a lamp beside a sofa.", "Ø 80 x 55 cm", false),
+  p("neo-tiffany-lamp", "Rose Tiffany Table Lamp", 18900, "lighting", ["neocolonial", "dark-academia"], "Stained glass and bronze",
+    "Hand-cut stained glass shade with a rose pattern on a bronze-finish base. E27 bulb, US plug.", "41 x 62 cm", false),
+  p("neo-persian-rug", "Medallion Persian Rug", 29900, "rugs", ["neocolonial", "dark-academia"], "Navy and terracotta",
+    "Traditional medallion design with a fringed border and a low, hard-wearing pile.", "320 x 184 cm", false),
+  p("neo-chandelier", "Candle Chandelier with Drum Shade", 21900, "lighting", ["neocolonial", "dark-academia"], "Antique brass and green",
+    "Four candle lights on scrolled brass arms under a pleated green drum shade.", "Ø 51 x 100 cm", false),
+  p("neo-oil-portrait", "Gilded Portrait Print", 15900, "wall-art", ["neocolonial", "dark-academia"], "Gold frame",
+    "Framed reproduction of a 19th-century oil portrait in an ornate gilt frame.", "79 x 95 cm", false),
+  p("neo-damask-curtains", "Damask Curtains with Sheers", 12900, "decor", ["neocolonial", "dark-academia"], "Claret and ivory",
+    "A pair of damask drapes with sheer liners, tiebacks and a turned wooden rod.", "260 cm drop", false),
+  p("neo-library-bookcase", "Mahogany Library Bookcase", 89900, "furniture", ["neocolonial", "dark-academia"], "Mahogany",
+    "Four-bay library bookcase with a panelled cupboard base. Books not included.", "196 x 35 x 230 cm", false),
 ];

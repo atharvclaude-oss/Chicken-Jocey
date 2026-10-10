@@ -1,0 +1,358 @@
+{
+  "id": "neocolonial-parlour-01",
+  "name": "Colonial Parlour",
+  "style": "neocolonial",
+  "units": "meters",
+  "_source": "Designed room (not from a scan): a colonial-revival parlour. Furniture is Sketchfab CC-BY models (credits: python blender/sketchfab.py --credits) plus Poly Haven CC0 decor.",
+  "_coords": "x = width (left to right), y = depth (front to back), z = up. rot: 0 faces the front (-y), 90 faces +x, 180 faces +y.",
+  "room": {
+    "width": 5.6,
+    "depth": 4.8,
+    "height": 3.0
+  },
+  "render": {
+    "exposure": 0.45
+  },
+  "materials": {
+    "floor": {
+      "texture": "dark_wooden_planks",
+      "tile": 2.2,
+      "tint": [
+        1.05,
+        0.95,
+        0.86
+      ],
+      "rough_min": 0.4
+    },
+    "walls": {
+      "texture": "white_plaster_02",
+      "color": "#5b6b78",
+      "tile": 1.6,
+      "detail": true,
+      "normal": 0.3
+    },
+    "ceiling": {
+      "color": "#efeae0"
+    },
+    "baseboard": {
+      "color": "#ece7dc",
+      "height": 0.18
+    },
+    "door": {
+      "color": "#ece7dc"
+    }
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "right",
+      "center": 2.45,
+      "width": 1.5,
+      "sill": 0.75,
+      "height": 1.75
+    },
+    {
+      "type": "door",
+      "wall": "right",
+      "center": 0.7,
+      "width": 0.9,
+      "height": 2.2
+    }
+  ],
+  "environment": {
+    "hdri": "kloofendal_48d_partly_cloudy",
+    "strength": 1.4,
+    "rotation": 60,
+    "sun": 4.0,
+    "sun_angle": [
+      55,
+      -80
+    ]
+  },
+  "objects": [
+    {
+      "asset": "sketchfab:fe13eecfc9b8405dab1fe76c5dd28a4c",
+      "pos": [
+        2.8,
+        2.35
+      ],
+      "rot": 0,
+      "face": 90,
+      "fit": {
+        "axis": "x",
+        "size": 3.2
+      },
+      "productId": "neo-persian-rug"
+    },
+    {
+      "asset": "sketchfab:e9854400c0c1410db01c8db897ef5359",
+      "pos": [
+        2.8,
+        4.43
+      ],
+      "rot": 0,
+      "fit": {
+        "axis": "z",
+        "size": 1.25
+      },
+      "light": {
+        "watts": 45,
+        "kelvin": 1900,
+        "at": 0.25,
+        "soft": 0.4
+      },
+      "decimate": 0.35
+    },
+    {
+      "asset": "sketchfab:a3647f7a23a0455b8c0eb155f7157e10",
+      "pos": [
+        2.8,
+        4.71,
+        1.5
+      ],
+      "rot": 0,
+      "face": -90,
+      "fit": {
+        "axis": "z",
+        "size": 0.95
+      },
+      "productId": "neo-oil-portrait",
+      "decimate": 0.25
+    },
+    {
+      "asset": "polyhaven:vintage_grandfather_clock_01",
+      "pos": [
+        0.55,
+        4.5
+      ],
+      "rot": 0
+    },
+    {
+      "asset": "polyhaven:potted_plant_02",
+      "pos": [
+        5.0,
+        4.4
+      ],
+      "rot": 30,
+      "scale": 1.2
+    },
+    {
+      "asset": "sketchfab:66ba4225efaa4de59d9a9b7086363199",
+      "pos": [
+        2.8,
+        1.25
+      ],
+      "rot": 180,
+      "fit": {
+        "axis": "x",
+        "size": 2.1
+      },
+      "productId": "neo-chesterfield-sofa",
+      "decimate": 0.3
+    },
+    {
+      "asset": "sketchfab:d606a3eb868d4122855bc7a82d2889a9",
+      "pos": [
+        1.5,
+        3.0
+      ],
+      "rot": 125,
+      "fit": {
+        "axis": "z",
+        "size": 1.15
+      },
+      "productId": "neo-wingback-chair",
+      "decimate": 0.3
+    },
+    {
+      "asset": "sketchfab:d606a3eb868d4122855bc7a82d2889a9",
+      "pos": [
+        4.1,
+        3.0
+      ],
+      "rot": -125,
+      "fit": {
+        "axis": "z",
+        "size": 1.15
+      },
+      "productId": "neo-wingback-chair",
+      "decimate": 0.3
+    },
+    {
+      "asset": "sketchfab:ad38ff95b713412080992a48eab50899",
+      "pos": [
+        2.8,
+        2.35
+      ],
+      "rot": 0,
+      "face": 90,
+      "fit": {
+        "axis": "z",
+        "size": 0.46
+      },
+      "productId": "neo-coffee-table"
+    },
+    {
+      "asset": "sketchfab:12e059dd5bf74029a916147e3331e72d",
+      "pos": [
+        1.35,
+        1.2
+      ],
+      "rot": 0,
+      "fit": {
+        "axis": "z",
+        "size": 0.55
+      },
+      "productId": "neo-side-table",
+      "decimate": 0.5
+    },
+    {
+      "asset": "sketchfab:12e059dd5bf74029a916147e3331e72d",
+      "pos": [
+        4.25,
+        1.2
+      ],
+      "rot": 0,
+      "fit": {
+        "axis": "z",
+        "size": 0.55
+      },
+      "productId": "neo-side-table",
+      "decimate": 0.5
+    },
+    {
+      "asset": "sketchfab:75be23a28d5949eab9b872431384e41a",
+      "pos": [
+        1.35,
+        1.2,
+        0.55
+      ],
+      "rot": 0,
+      "fit": {
+        "axis": "z",
+        "size": 0.62
+      },
+      "productId": "neo-tiffany-lamp",
+      "light": {
+        "watts": 14,
+        "kelvin": 2400,
+        "at": 0.62,
+        "soft": 0.1
+      },
+      "decimate": 0.5
+    },
+    {
+      "asset": "sketchfab:75be23a28d5949eab9b872431384e41a",
+      "pos": [
+        4.25,
+        1.2,
+        0.55
+      ],
+      "rot": 0,
+      "fit": {
+        "axis": "z",
+        "size": 0.62
+      },
+      "productId": "neo-tiffany-lamp",
+      "light": {
+        "watts": 14,
+        "kelvin": 2400,
+        "at": 0.62,
+        "soft": 0.1
+      },
+      "decimate": 0.5
+    },
+    {
+      "asset": "sketchfab:75aa9519195647d99cf1e2d4863dbe87",
+      "pos": [
+        0.2,
+        2.4
+      ],
+      "rot": 90,
+      "fit": {
+        "axis": "z",
+        "size": 2.3
+      },
+      "productId": "neo-library-bookcase"
+    },
+    {
+      "asset": "sketchfab:e5b01c717dbd4244b861168eddd67375",
+      "pos": [
+        5.45,
+        2.45
+      ],
+      "rot": -90,
+      "fit": {
+        "axis": "z",
+        "size": 2.6
+      },
+      "productId": "neo-damask-curtains",
+      "decimate": 0.6
+    },
+    {
+      "asset": "sketchfab:7058eec02b434b9e8f3ffe3ec0f93083",
+      "pos": [
+        2.8,
+        2.4
+      ],
+      "hang": true,
+      "fit": {
+        "axis": "z",
+        "size": 1.0
+      },
+      "productId": "neo-chandelier",
+      "light": {
+        "watts": 70,
+        "kelvin": 2600,
+        "at": 0.25,
+        "soft": 0.25
+      }
+    }
+  ],
+  "cameras": {
+    "hero": {
+      "pos": [
+        0.9,
+        0.35,
+        1.65
+      ],
+      "target": [
+        3.3,
+        3.9,
+        1.0
+      ],
+      "lens": 20
+    },
+    "corner": {
+      "pos": [
+        4.9,
+        0.35,
+        1.65
+      ],
+      "target": [
+        2.0,
+        3.9,
+        1.0
+      ],
+      "lens": 20
+    },
+    "birdseye": {
+      "pos": [
+        2.8,
+        -2.6,
+        6.4
+      ],
+      "target": [
+        2.8,
+        2.4,
+        0.3
+      ],
+      "lens": 28,
+      "hide": [
+        "ceiling",
+        "wall_front",
+        "baseboard_front"
+      ]
+    }
+  }
+}

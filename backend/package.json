@@ -15,7 +15,8 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "price-sheet": "tsx scripts/price-sheet.ts",
-    "check-sourcing": "tsx scripts/check-sourcing.ts"
+    "check-sourcing": "tsx scripts/check-sourcing.ts",
+    "fetch-aliexpress": "tsx scripts/fetch-aliexpress.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

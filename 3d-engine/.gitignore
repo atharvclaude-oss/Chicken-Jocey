@@ -10,3 +10,6 @@ capture/target/
 # Room scan uploads (raw videos) and local GPU tools
 captures-in/
 .tools/
+
+# Local secrets (Sketchfab API token)
+.env

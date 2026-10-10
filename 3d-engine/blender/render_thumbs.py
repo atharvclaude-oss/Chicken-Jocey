@@ -41,13 +41,19 @@ cam = bpy.data.objects.new("thumb_cam", cam_data)
 scn.collection.objects.link(cam)
 scn.camera = cam
 
+# Show both sides of every surface, like the room renders and the web viewer do; otherwise
+# single-sided imports (e.g. a scanned painting facing the wall) vanish from the front.
+for mat in bpy.data.materials:
+    mat.use_backface_culling = False
+
 groups = defaultdict(list)
 for root in scn.objects:
     if root.parent is None and "productId" in root:
         groups[root["productId"]].append(root)
 
 for product_id, roots in sorted(groups.items()):
-    members = [o for r in roots for o in [r, *r.children_recursive]]
+    # One copy is enough when a product is placed several times (e.g. a pair of chairs).
+    members = [roots[0], *roots[0].children_recursive]
     member_set = set(members)
     for o in scn.objects:
         o.hide_render = o not in member_set and o.type != "LIGHT"
@@ -60,7 +66,11 @@ for product_id, roots in sorted(groups.items()):
     hi = Vector([max(c[i] for c in corners) for i in range(3)])
     center = (lo + hi) / 2
     size = max(hi[i] - lo[i] for i in range(3))
-    direction = Vector((1.0, -1.0, 0.45)).normalized()
+    # Shoot from the piece's own front, 35 degrees off-axis (front is -y before the placement rotation).
+    yaw = roots[0].rotation_euler.z
+    ang = math.radians(35)
+    fx, fy = math.sin(ang), -math.cos(ang)
+    direction = Vector((fx * math.cos(yaw) - fy * math.sin(yaw), fx * math.sin(yaw) + fy * math.cos(yaw), 0.45)).normalized()
     cam.location = center + direction * max(size, 0.4) * 1.45
     cam.rotation_euler = (center - cam.location).to_track_quat("-Z", "Y").to_euler()
 

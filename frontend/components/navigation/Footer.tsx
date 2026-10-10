@@ -18,6 +18,7 @@ export function Footer() {
             <li><Link className="hover:text-fg" href="/">Rooms</Link></li>
             <li><Link className="hover:text-fg" href="/catalogue">Catalogue</Link></li>
             <li><Link className="hover:text-fg" href="/cart">Cart</Link></li>
+            <li><Link className="hover:text-fg" href="/credits">Credits</Link></li>
           </ul>
         </div>
       </div>

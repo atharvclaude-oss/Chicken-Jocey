@@ -23,6 +23,7 @@ ENGINE = HERE.parent
 sys.path.insert(0, str(HERE))
 import furniture  # noqa: E402
 import polyhaven  # noqa: E402
+import sketchfab  # noqa: E402
 
 WALL_T = 0.12  # wall thickness (m), built outside the room footprint
 
@@ -378,6 +379,76 @@ def import_polyhaven(spec, idx):
     return root
 
 
+def add_point_light(name, loc, watts, kelvin, soft=0.08):
+    light = link(bpy.data.objects.new(name, bpy.data.lights.new(name, "POINT")))
+    light.data.energy = watts * 4
+    light.data.color = kelvin_rgb(kelvin)
+    light.data.shadow_soft_size = soft
+    light.location = loc
+    return light
+
+
+def import_sketchfab(spec, idx):
+    """Sketchfab models arrive at arbitrary scale and facing. The spec says how to fix both:
+    "face": extra rotation (degrees) so the model's front points at -y, like everything else;
+    "fit": {"axis": "x"|"y"|"z", "size": metres} sets the real size along one axis
+    (after "face"). The model is then centred, set on the floor, and placed per pos/rot."""
+    uid = spec["asset"].split(":", 1)[1]
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(sketchfab.model(uid)))
+    imported = [o for o in bpy.data.objects if o not in before]
+    bpy.context.view_layer.update()
+    # Keep only textured meshes, frozen where they sit: rigs, empties and material-less helper
+    # shapes (e.g. bone display spheres) would otherwise break baking.
+    new = [o for o in imported if o.type == "MESH" and o.data.materials and not o.hide_render]
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    for o in new:
+        mw = o.matrix_world.copy()
+        if any(m.type == "ARMATURE" for m in o.modifiers):
+            # Rigged mesh: freeze the pose the rig gives it (its raw rest shape can be far off).
+            posed = bpy.data.meshes.new_from_object(o.evaluated_get(depsgraph))
+            o.modifiers.clear()
+            o.data = posed
+        o.parent = None
+        o.matrix_world = mw
+    for o in imported:
+        if o not in new:
+            bpy.data.objects.remove(o, do_unlink=True)
+    if "decimate" in spec:  # keep web files light: baked textures carry the fine detail
+        for o in new:
+            d = o.modifiers.new("decimate", "DECIMATE")
+            d.ratio = spec["decimate"]
+            d.use_collapse_triangulate = True
+    norm = link(bpy.data.objects.new(f"sketchfab_{idx}_fit", None))
+    for o in new:
+        if o.parent is None:
+            o.parent = norm
+    norm.rotation_euler = (0, 0, math.radians(spec.get("face", 0)))
+    bpy.context.view_layer.update()
+    mn, mx = bounds(new)
+    fit = spec["fit"]
+    axis = "xyz".index(fit["axis"])
+    s = fit["size"] / (mx - mn)[axis]
+    norm.scale = (s, s, s)
+    bpy.context.view_layer.update()
+    mn, mx = bounds(new)
+    norm.location = (-(mn.x + mx.x) / 2, -(mn.y + mx.y) / 2, -mn.z)
+    root = group(f"sketchfab_{idx}", [norm], spec)
+    bpy.context.view_layer.update()
+    mn, mx = bounds(new)
+    H = SPEC["room"]["height"]
+    if "hang" in spec:  # ceiling fixture: lift so its top meets the ceiling
+        root.location.z += H - mx.z
+        bpy.context.view_layer.update()
+        mn, mx = bounds(new)
+    if "light" in spec:
+        L = spec["light"]
+        z = mn.z + (mx.z - mn.z) * L.get("at", 0.3 if "hang" in spec else 0.75)
+        add_point_light(f"sketchfab_{idx}_light", ((mn.x + mx.x) / 2, (mn.y + mx.y) / 2, z),
+                        L["watts"], L.get("kelvin", 2700), L.get("soft", 0.08))
+    return root
+
+
 def proc_area_light(spec, idx):
     light = link(bpy.data.objects.new(f"area_{idx}", bpy.data.lights.new(f"area_{idx}", "AREA")))
     light.data.energy = spec.get("watts", 40)
@@ -565,6 +636,8 @@ def main():
         kind, name = obj["asset"].split(":", 1)
         if kind == "polyhaven":
             import_polyhaven(obj, i)
+        elif kind == "sketchfab":
+            import_sketchfab(obj, i)
         elif kind == "proc":
             if name in PROC:
                 PROC[name](obj, i)
