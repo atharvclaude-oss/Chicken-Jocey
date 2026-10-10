@@ -1,22 +1,28 @@
-// Loads the frontend's mock catalogue into the database so the API serves the
-// same products and rooms the site shows today. Safe to re-run: everything is
-// upserted by slug/SKU, and a room's placements are replaced wholesale.
+// Loads the frontend's mock catalogue and 3D rooms into the database so the API
+// serves what the site shows today, plus the supplier listing behind each
+// product (data/product-sourcing.tsv). Safe to re-run: everything is upserted
+// by slug/SKU, and a room's placements are replaced wholesale.
 //
 // Once the frontend reads from the API, move this data here and delete
 // frontend/services/mock-data.ts.
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
-import { products, rooms, styles } from "../../frontend/services/mock-data.ts";
-import { categoryLabels } from "../../frontend/services/products.ts";
+import { products, styles } from "../../frontend/services/mock-data.ts";
+import { scenes } from "../../frontend/services/scenes.ts";
+import { categoryLabels } from "../../frontend/utils/categories.ts";
 import { PrismaClient } from "../src/generated/prisma/client.ts";
-import { Availability, ProductStatus, RoomStatus } from "../src/generated/prisma/enums.ts";
+import { Availability, ProductStatus, RoomStatus, SupplierPlatform } from "../src/generated/prisma/enums.ts";
+import { loadProductSourcing } from "../src/modules/sourcing/sourcing-sheet.ts";
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env["DATABASE_URL"]! }),
 });
 
 async function main() {
+  // Parse first: a bad sourcing row should fail before anything is written.
+  const sourcing = new Map(loadProductSourcing().map((s) => [s.productSlug, s]));
+
   const categoryIds = new Map<string, string>();
   for (const [i, [slug, name]] of Object.entries(categoryLabels).entries()) {
     const c = await db.category.upsert({
@@ -44,6 +50,7 @@ async function main() {
       categoryId: categoryIds.get(p.category)!,
       dimensionsLabel: p.dimensions,
       shippingEstimate: p.shippingEstimate,
+      internalNotes: sourcingNotes(sourcing.get(p.slug)),
     };
     const product = await db.product.upsert({
       where: { slug: p.slug },
@@ -77,41 +84,130 @@ async function main() {
     productIds.set(p.id, { productId: product.id, variantId: variant.id });
   }
 
-  for (const [i, r] of rooms.entries()) {
-    const styleId = styleIds.get(r.styleSlug)!;
+  // Supplier listings: one marketplace supplier per platform, one listing per
+  // product with an exact item page. Searches stay in internalNotes until
+  // someone picks the listing.
+  const supplierIds = new Map<SupplierPlatform, string>();
+  let listings = 0;
+  for (const source of sourcing.values()) {
+    const ids = productIds.get(source.productSlug);
+    if (!ids) throw new Error(`product-sourcing.tsv: ${source.productSlug} is not a catalogue product`);
+    if (source.kind !== "listing" || !source.supplierSku) {
+      await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId } });
+      continue;
+    }
+    const platform = source.platform as SupplierPlatform;
+    if (!supplierIds.has(platform)) supplierIds.set(platform, await marketplaceSupplier(platform));
+    const supplierId = supplierIds.get(platform)!;
+
+    // Costs stay 0 until filled in sourcing.tsv; UNKNOWN availability keeps
+    // fulfilment from ordering an unchecked listing.
     const data = {
-      name: r.name,
-      blurb: r.blurb,
+      variantId: ids.variantId,
+      url: source.url,
+      unitCostCents: source.unitCostCents ?? 0,
+      shippingCostCents: source.shippingCostCents ?? 0,
+      priority: 1,
+    };
+    const previous = await db.supplierProduct.findUnique({
+      where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
+    });
+    const listing = await db.supplierProduct.upsert({
+      where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
+      update: data,
+      create: { supplierId, supplierSku: source.supplierSku, availability: Availability.UNKNOWN, ...data },
+    });
+    // Drop listings the sheet no longer routes this variant to.
+    await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId, id: { not: listing.id } } });
+    if (
+      source.unitCostCents !== null &&
+      (previous?.unitCostCents !== listing.unitCostCents || previous?.shippingCostCents !== listing.shippingCostCents)
+    ) {
+      await db.supplierPriceHistory.create({
+        data: {
+          supplierProductId: listing.id,
+          unitCostCents: listing.unitCostCents,
+          shippingCostCents: listing.shippingCostCents,
+        },
+      });
+    }
+    listings++;
+  }
+
+  // 3D rooms. Each tagged object's glTF productId is its scene object id. They
+  // have no photo view, so the image is the window view (or the style cover)
+  // and hotspots are unused.
+  for (const [i, scene] of scenes.entries()) {
+    const styleId = styleIds.get(scene.styleSlug);
+    if (!styleId) throw new Error(`scenes.ts: ${scene.id} has unknown styleSlug ${scene.styleSlug}`);
+    const data = {
+      name: scene.name,
+      blurb: scene.style,
       status: RoomStatus.ACTIVE,
-      image: r.image,
-      imageWidth: r.imageWidth,
-      imageHeight: r.imageHeight,
+      image: scene.background ?? styles.find((s) => s.slug === scene.styleSlug)!.coverImage,
+      imageWidth: 0,
+      imageHeight: 0,
       sortOrder: i,
     };
     const room = await db.room.upsert({
-      where: { styleId_slug: { styleId, slug: r.slug } },
+      where: { styleId_slug: { styleId, slug: scene.id } },
       update: data,
-      create: { slug: r.slug, styleId, ...data },
+      create: { slug: scene.id, styleId, ...data },
     });
 
     await db.roomProduct.deleteMany({ where: { roomId: room.id } });
     await db.roomProduct.createMany({
-      data: r.assets.map((a, sortOrder) => ({
-        roomId: room.id,
-        ...productIds.get(a.productId)!,
-        sceneObjectId: a.assetId,
-        hotspotX: a.hotspot.x,
-        hotspotY: a.hotspot.y,
-        position: [],
-        rotation: [],
-        sortOrder,
-      })),
+      data: scene.productIds.map((productId, sortOrder) => {
+        const ids = productIds.get(productId);
+        if (!ids) throw new Error(`scenes.ts: ${scene.id} lists unknown product ${productId}`);
+        return {
+          roomId: room.id,
+          ...ids,
+          sceneObjectId: productId,
+          hotspotX: 0,
+          hotspotY: 0,
+          position: [],
+          rotation: [],
+          sortOrder,
+        };
+      }),
     });
   }
 
+  // Rooms from older seeds (the 2D photo rooms) are archived, not deleted, so
+  // links and analytics keep resolving to a 404 rather than a wrong room.
+  await db.room.updateMany({
+    where: { slug: { notIn: scenes.map((s) => s.id) } },
+    data: { status: RoomStatus.ARCHIVED },
+  });
+
   console.log(
-    `Seeded ${categoryIds.size} categories, ${styleIds.size} styles, ${productIds.size} products, ${rooms.length} rooms.`,
+    `Seeded ${categoryIds.size} categories, ${styleIds.size} styles, ${productIds.size} products, ` +
+      `${listings} supplier listings, ${scenes.length} rooms.`,
   );
+}
+
+function sourcingNotes(source: ReturnType<typeof loadProductSourcing>[number] | undefined): string {
+  if (!source) return "";
+  const head =
+    source.kind === "search"
+      ? `Needs an exact ${source.platform} listing. Search: ${source.url}`
+      : `Fulfil from ${source.url}${source.option ? ` (option: ${source.option})` : ""}`;
+  return [head, source.notes].filter(Boolean).join("\n");
+}
+
+const PLATFORM_NAMES: Record<SupplierPlatform, string> = {
+  ALIEXPRESS: "AliExpress",
+  ALIBABA: "Alibaba",
+  DISTRIBUTOR: "Distributor",
+  OTHER: "Other",
+};
+
+/** One catch-all supplier per marketplace until individual stores are tracked. */
+async function marketplaceSupplier(platform: SupplierPlatform): Promise<string> {
+  const name = PLATFORM_NAMES[platform];
+  const existing = await db.supplier.findFirst({ where: { platform, name } });
+  return (existing ?? (await db.supplier.create({ data: { platform, name } }))).id;
 }
 
 main()

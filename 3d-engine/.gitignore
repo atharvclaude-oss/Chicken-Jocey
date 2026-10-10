@@ -6,3 +6,7 @@ captures-out/
 __pycache__/
 # Brush GPU autotune cache (created in the working dir while training)
 capture/target/
+
+# Room scan uploads (raw videos) and local GPU tools
+captures-in/
+.tools/

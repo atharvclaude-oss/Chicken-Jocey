@@ -2,6 +2,8 @@
 // prefixed "test-" and removed afterwards.
 import type { Product, RoomDetail, RoomSummary } from "@shared/types";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { products as mockProducts } from "../../frontend/services/mock-data.ts";
+import { categoryLabels } from "../../frontend/utils/categories.ts";
 import { buildApp } from "../src/app.ts";
 import { prisma } from "../src/db/client.ts";
 import { BundleTier, ProductStatus } from "../src/generated/prisma/enums.ts";
@@ -29,7 +31,7 @@ describe("products", () => {
   it("lists seeded products in the shared Product shape", async () => {
     const { status, body } = await get<Product[]>("/products");
     expect(status).toBe(200);
-    expect(body).toHaveLength(20);
+    expect(body).toHaveLength(mockProducts.length);
     const lamp = body.find((p) => p.slug === "mushroom-lamp")!;
     expect(lamp).toMatchObject({ priceCents: 2499, category: "lighting", available: true, color: "Mustard" });
     expect(lamp.styles.sort()).toEqual(["gaming-minimal", "warm-minimal"]);
@@ -77,26 +79,26 @@ describe("products", () => {
 describe("rooms", () => {
   it("computes totals from current prices", async () => {
     const { body } = await get<RoomSummary[]>("/rooms?style=sleek-masculine");
-    const midnight = body.find((r) => r.slug === "midnight-minimal")!;
-    // swing-arm lamp 4600 + pillow + rug, straight from the seeded variants.
+    const lounge = body.find((r) => r.slug === "sleek-lounge-01")!;
     const prices = await prisma.roomProduct.findMany({
-      where: { room: { slug: "midnight-minimal" } },
+      where: { room: { slug: "sleek-lounge-01" } },
       include: { variant: true },
     });
-    expect(midnight.totalCents).toBe(prices.reduce((s, p) => s + p.variant.priceCents, 0));
-    expect(midnight.productCount).toBe(3);
-    expect(midnight.assets[0]).toMatchObject({ assetId: "midnight-minimal-01", hotspot: { x: 48, y: 41 } });
+    expect(lounge.totalCents).toBe(prices.reduce((s, p) => s + p.variant.priceCents, 0));
+    expect(lounge.productCount).toBe(4);
+    // The scene object id is the glTF productId tag in the baked room.
+    expect(lounge.assets[0]).toMatchObject({ assetId: "oak-gallery-frame" });
   });
 
   it("finds rooms containing a product", async () => {
-    const atlas = (await get<Product>("/products/leather-atlas")).body;
-    const { body } = await get<RoomSummary[]>(`/rooms?productId=${atlas.id}`);
-    expect(body.map((r) => r.slug).sort()).toEqual(["night-library", "reading-room", "writers-desk"]);
+    const frame = (await get<Product>("/products/oak-gallery-frame")).body;
+    const { body } = await get<RoomSummary[]>(`/rooms?productId=${frame.id}`);
+    expect(body.map((r) => r.slug).sort()).toEqual(["sleek-lounge-01", "zeke-bedroom-01"]);
   });
 
   it("returns a room with its products and bundles", async () => {
     const room = await prisma.room.findFirstOrThrow({
-      where: { slug: "monochrome-setup" },
+      where: { slug: "zeke-bedroom-01" },
       include: { items: { include: { variant: true }, orderBy: { sortOrder: "asc" } } },
     });
     const starter = room.items.slice(0, 2);
@@ -109,9 +111,9 @@ describe("rooms", () => {
       },
     });
 
-    const { status, body } = await get<RoomDetail>("/rooms/gaming-minimal/monochrome-setup");
+    const { status, body } = await get<RoomDetail>("/rooms/gaming-minimal/zeke-bedroom-01");
     expect(status).toBe(200);
-    expect(body.products).toHaveLength(4);
+    expect(body.products).toHaveLength(6);
     expect(body.bundles).toEqual([
       {
         tier: "starter",
@@ -120,13 +122,17 @@ describe("rooms", () => {
         totalCents: starter.reduce((s, i) => s + i.variant.priceCents, 0),
       },
     ]);
-    expect((await get("/rooms/warm-minimal/monochrome-setup")).status).toBe(404);
+    expect((await get("/rooms/warm-minimal/zeke-bedroom-01")).status).toBe(404);
+  });
+
+  it("hides archived rooms", async () => {
+    expect((await get("/rooms/gaming-minimal/monochrome-setup")).status).toBe(404);
   });
 });
 
 describe("catalogue", () => {
   it("serves categories and styles", async () => {
-    expect((await get<unknown[]>("/categories")).body).toHaveLength(6);
+    expect((await get<unknown[]>("/categories")).body).toHaveLength(Object.keys(categoryLabels).length);
     expect((await get<{ slug: string }>("/styles/dark-academia")).body.slug).toBe("dark-academia");
   });
 
@@ -145,5 +151,70 @@ describe("catalogue", () => {
       "woven-wool-rug",
     );
     expect((await get("/collections/test-hidden")).status).toBe(404);
+  });
+});
+
+describe("supplier routing", () => {
+  it("routes every product in a 3D room to a supplier", async () => {
+    const rooms = (await get<RoomSummary[]>("/rooms")).body;
+    const productIds = new Set(rooms.flatMap((r) => r.assets.map((a) => a.productId)));
+    expect(productIds.size).toBeGreaterThan(0);
+    const routed = await prisma.product.findMany({
+      where: { id: { in: [...productIds] } },
+      include: { variants: { include: { supplierListings: true } } },
+    });
+    for (const p of routed) {
+      const listed = p.variants.some((v) => v.supplierListings.length > 0);
+      // Either an exact listing, or a search link recorded for the sourcing team.
+      expect(listed || p.internalNotes.startsWith("Needs an exact"), p.slug).toBe(true);
+    }
+  });
+
+  it("keeps supplier details out of public responses", async () => {
+    const res = await app.inject({ method: "GET", url: "/products/gaming-chair" });
+    expect(res.body).not.toMatch(/aliexpress|alibaba|unitCost|internalNotes/i);
+  });
+});
+
+describe("admin", () => {
+  const key = "k".repeat(40);
+
+  it("is disabled without a key", async () => {
+    expect((await get("/admin/products/gaming-chair/sourcing")).status).toBe(404);
+  });
+
+  it("requires the key and returns the fulfilment listing", async () => {
+    const admin = await buildApp({ db: prisma, adminApiKey: key });
+    const url = "/admin/products/gaming-chair/sourcing";
+    expect((await admin.inject({ url })).statusCode).toBe(401);
+    expect((await admin.inject({ url, headers: { authorization: "Bearer wrong" } })).statusCode).toBe(401);
+    const res = await admin.inject({ url, headers: { authorization: `Bearer ${key}` } });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().variants[0].listings[0]).toMatchObject({
+      platform: "ALIEXPRESS",
+      url: "https://www.aliexpress.us/item/3256808049031703.html",
+    });
+    await admin.close();
+  });
+});
+
+describe("hardening", () => {
+  it("returns JSON 404s for unknown routes", async () => {
+    const { status, body } = await get<{ error: string }>("/nope");
+    expect(status).toBe(404);
+    expect(body.error).toBe("Not found");
+  });
+
+  it("rate limits per client", async () => {
+    const limited = await buildApp({ db: prisma, rateLimitMax: 3 });
+    const codes = [];
+    for (let i = 0; i < 5; i++) codes.push((await limited.inject({ url: "/categories" })).statusCode);
+    expect(codes).toEqual([200, 200, 200, 429, 429]);
+    const res = await limited.inject({ url: "/categories" });
+    expect(res.json().error).toMatch(/Rate limit exceeded/);
+    expect(res.headers["retry-after"]).toBeDefined();
+    // Health checks are exempt so load balancers never get throttled.
+    expect((await limited.inject({ url: "/health" })).statusCode).toBe(200);
+    await limited.close();
   });
 });

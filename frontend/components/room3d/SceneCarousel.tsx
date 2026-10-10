@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { Product } from "@shared/types";
@@ -8,6 +9,7 @@ import type { RoomScene } from "@/services/scenes";
 import { useLoading } from "@/store/loading";
 import { track } from "@/utils/analytics";
 import { pluralize } from "@/utils/format";
+import { replaceQuery } from "@/utils/url-state";
 import { RoomExperience3D } from "./RoomExperience3D";
 import { RoomRing } from "./RoomRing";
 
@@ -29,8 +31,17 @@ export function SceneCarousel({
   // The ring shows baked glTF rooms; splat-only scenes can't sit in it.
   const scenes = allScenes.filter((s) => !s.splat);
   const count = scenes.length;
-  const [target, setTarget] = useState(0);
-  const [entered, setEntered] = useState<RoomScene | null>(null);
+  // ?room=<id> reopens that room (and ?product / ?view the piece and view)
+  // across Back from a product page, reloads and shared links.
+  const searchParams = useSearchParams();
+  const linked = scenes.findIndex((s) => s.id === searchParams.get("room"));
+  const [target, setTarget] = useState(Math.max(0, linked));
+  const [entered, setEntered] = useState<RoomScene | null>(linked >= 0 ? scenes[linked] : null);
+  // Piece and view to restore, read once on arrival; entering from the ring starts fresh.
+  const [entry, setEntry] = useState(() => ({
+    productId: searchParams.get("product"),
+    mode: searchParams.get("view") === "walk" ? ("walk" as const) : ("overview" as const),
+  }));
   const index = ((target % count) + count) % count;
   const active = scenes[index];
 
@@ -68,13 +79,21 @@ export function SceneCarousel({
   );
   const enter = useCallback(() => {
     track("room_entered", { roomId: active.id });
+    setEntry({ productId: null, mode: "overview" });
     setEntered(active);
+    replaceQuery({ room: active.id });
   }, [active]);
+  const leave = useCallback(() => {
+    setEntered(null);
+    replaceQuery({ room: null, product: null, view: null });
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Leave keys alone while a control (e.g. a quantity stepper) has focus.
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select, [role=group]")) return;
       if (entered) {
-        if (e.key === "Escape") setEntered(null);
+        if (e.key === "Escape") leave();
         return;
       }
       if (e.key === "ArrowRight") turnTo(target + 1);
@@ -83,7 +102,7 @@ export function SceneCarousel({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [entered, target, turnTo, enter]);
+  }, [entered, target, turnTo, enter, leave]);
 
   if (count === 0) return null;
   const pieces = productsByScene[active.id]?.length ?? 0;
@@ -100,10 +119,16 @@ export function SceneCarousel({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
           >
-            <RoomExperience3D room={entered} products={productsByScene[entered.id] ?? []} roomCounts={roomCounts} />
+            <RoomExperience3D
+              room={entered}
+              products={productsByScene[entered.id] ?? []}
+              roomCounts={roomCounts}
+              initialProductId={entry.productId}
+              initialMode={entry.mode}
+            />
             <button
               type="button"
-              onClick={() => setEntered(null)}
+              onClick={leave}
               className="absolute right-4 top-4 z-30 inline-flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-medium text-white backdrop-blur-md transition-colors hover:bg-white/20 md:right-6 md:top-6"
             >
               <ArrowLeft size={16} />

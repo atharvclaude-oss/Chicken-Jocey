@@ -24,7 +24,10 @@ export interface SplatConfig {
 export interface RoomScene {
   id: string;
   name: string;
+  /** Display label shown over the room. */
   style: string;
+  /** Catalogue style (mock-data `styles`) the room is filed under in the backend. */
+  styleSlug: string;
   /** Baked .glb exported by 3d-engine/blender/bake_export.py */
   model: string;
   /** Equirectangular view seen through the windows. */
@@ -46,6 +49,7 @@ export const scenes: RoomScene[] = [
     id: "sleek-lounge-01",
     name: "Graphite Lounge",
     style: "Sleek Masculine",
+    styleSlug: "sleek-masculine",
     model: "/models/sleek-lounge-01.glb",
     background: "/models/sleek-lounge-01-view.jpg",
     backgroundRotation: 200,
@@ -57,6 +61,7 @@ export const scenes: RoomScene[] = [
     id: "living-room-02",
     name: "Living Room 02",
     style: "Living Room",
+    styleSlug: "warm-minimal",
     model: "/models/living-room-02.glb",
     size: { width: 5.2, depth: 4.2, height: 2.7 },
     walkStart: { x: 2.8, y: 1.05, lookAt: { x: 2.39, y: 3.5 } },
@@ -80,6 +85,7 @@ export const scenes: RoomScene[] = [
     id: "zeke-bedroom-01",
     name: "Zeke's Bedroom",
     style: "From your video",
+    styleSlug: "gaming-minimal",
     model: "/models/zeke-bedroom-01.glb?v=measured-2", // bump when the .glb changes so browsers refetch
     background: "/models/zeke-bedroom-01-view.jpg",
     backgroundRotation: 70,
@@ -92,6 +98,7 @@ export const scenes: RoomScene[] = [
     id: "samir-room-01",
     name: "Samir's Room",
     style: "From your video",
+    styleSlug: "warm-minimal",
     model: "/models/samir-room-01.glb?v=measured-2", // bump when the .glb changes so browsers refetch
     background: "/models/samir-room-01-view.jpg",
     backgroundRotation: 70,

@@ -1,16 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@shared/types";
-import { categoryLabels, styleName } from "@/services/products";
+import { styleName } from "@/services/products";
+import { categoryLabels } from "@/utils/categories";
 import { formatPrice } from "@/utils/format";
+import { roomHref } from "@/utils/routes";
 
 export function ProductCard({
   product,
-  showViewInRoom = true,
+  roomId,
   sizes = "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw",
 }: {
   product: Product;
-  showViewInRoom?: boolean;
+  /** A 3D room featuring this product; adds a "View in room" link. */
+  roomId?: string;
   sizes?: string;
 }) {
   return (
@@ -38,9 +41,9 @@ export function ProductCard({
           {styleName(product.styles[0])} · {categoryLabels[product.category]}
         </p>
       </Link>
-      {showViewInRoom && (
+      {roomId && (
         <Link
-          href={`/products/${product.slug}#in-rooms`}
+          href={roomHref(roomId, product.id)}
           className="mt-2 inline-block text-[13px] font-medium text-accent underline-offset-4 hover:underline"
         >
           View in room

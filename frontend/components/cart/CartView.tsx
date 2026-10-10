@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CaretDown, Minus, Plus, X } from "@phosphor-icons/react";
+import { CaretDown, X } from "@phosphor-icons/react";
 import type { CartItem } from "@shared/types";
 import { Button, ButtonLink } from "@/components/common/Button";
 import { useHydrated } from "@/hooks/useHydrated";
 import { lineTotal, useCart } from "@/store/cart";
 import { formatPrice, pluralize } from "@/utils/format";
+import { QuantityStepper } from "./QuantityStepper";
 
 export function CartView() {
   const hydrated = useHydrated();
@@ -60,13 +61,49 @@ export function CartView() {
           <span className="font-mono text-2xl tabular-nums">{formatPrice(subtotal)}</span>
         </div>
         <p className="mt-2 text-sm text-muted">Shipping and taxes are calculated at checkout.</p>
-        {/* TODO(week 4): checkout page with Stripe Elements; totals re-priced server-side. */}
-        <Button size="lg" className="mt-6 w-full" disabled>
-          Checkout
-        </Button>
-        <p className="mt-3 text-center text-xs text-muted">Checkout opens with the next release.</p>
+        <CheckoutButton items={items} />
       </aside>
     </div>
+  );
+}
+
+/** Sends only ids and quantities; the server prices the order and returns a Stripe Checkout URL. */
+function CheckoutButton({ items }: { items: CartItem[] }) {
+  const [state, setState] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
+
+  async function checkout() {
+    setState({ busy: true, error: null });
+    const lines = items.flatMap((i) =>
+      i.kind === "product"
+        ? [{ productId: i.productId, quantity: i.quantity }]
+        : i.products.map((p) => ({ productId: p.productId, quantity: 1 })),
+    );
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items: lines }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.url) throw new Error(body.error ?? "Checkout is unavailable right now.");
+      window.location.assign(body.url);
+    } catch (err) {
+      setState({ busy: false, error: err instanceof Error ? err.message : "Checkout is unavailable right now." });
+    }
+  }
+
+  return (
+    <>
+      <Button size="lg" className="mt-6 w-full" onClick={checkout} disabled={state.busy}>
+        {state.busy ? "Opening secure checkout…" : "Checkout"}
+      </Button>
+      {state.error && (
+        <p role="alert" className="mt-3 text-center text-sm text-red-600">
+          {state.error}
+        </p>
+      )}
+      <p className="mt-3 text-center text-xs text-muted">Payments are processed securely by Stripe.</p>
+    </>
   );
 }
 
@@ -87,15 +124,13 @@ function ProductLine({ item }: { item: Extract<CartItem, { kind: "product" }> })
           <p className="font-mono tabular-nums">{formatPrice(lineTotal(item))}</p>
         </div>
         <div className="mt-3 flex items-center justify-between">
-          <div className="inline-flex items-center rounded-full border border-line">
-            <QtyButton label="Decrease quantity" onClick={() => setQuantity(item.productId, item.quantity - 1)}>
-              <Minus size={14} />
-            </QtyButton>
-            <span className="w-8 text-center font-mono text-sm tabular-nums">{item.quantity}</span>
-            <QtyButton label="Increase quantity" onClick={() => setQuantity(item.productId, item.quantity + 1)}>
-              <Plus size={14} />
-            </QtyButton>
-          </div>
+          {/* min 0: stepping below 1 removes the line, as before. */}
+          <QuantityStepper
+            label={item.name}
+            min={0}
+            value={item.quantity}
+            onChange={(next) => setQuantity(item.productId, next)}
+          />
           <button type="button" onClick={() => remove(item.productId)} className="text-sm text-muted hover:text-fg">
             Remove
           </button>
@@ -160,18 +195,5 @@ function BundleLine({ item }: { item: Extract<CartItem, { kind: "bundle" }> }) {
         </ul>
       )}
     </div>
-  );
-}
-
-function QtyButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="grid size-9 place-items-center rounded-full transition-colors hover:bg-sunken"
-    >
-      {children}
-    </button>
   );
 }
