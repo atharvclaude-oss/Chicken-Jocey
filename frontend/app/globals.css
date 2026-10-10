@@ -190,3 +190,13 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Error / 404 illustration: the lamp sways in an empty room, or flickers when something broke. */
+@keyframes error-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes error-flicker { 0%, 100% { opacity: 1; } 8% { opacity: .25; } 10% { opacity: 1; } 47% { opacity: 1; } 49% { opacity: .15; } 52% { opacity: .9; } 54% { opacity: .2; } 57% { opacity: 1; } }
+.error-lamp-sway { animation: error-sway 4.5s var(--ease-out-expo) infinite; }
+.error-lamp-flicker { animation: error-sway 7s ease-in-out infinite; }
+.error-lamp-flicker .error-bulb, .error-glow-flicker { animation: error-flicker 3.2s steps(1, end) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .error-lamp-sway, .error-lamp-flicker, .error-lamp-flicker .error-bulb, .error-glow-flicker { animation: none; }
+}

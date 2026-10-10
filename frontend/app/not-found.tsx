@@ -7,8 +7,8 @@ export const metadata: Metadata = { title: "Page not found", robots: { index: fa
 export default function NotFound() {
   return (
     <ErrorScreen
-      code="404"
-      title="This page doesn't exist."
+      code="404 · Not found"
+      title="This room is empty."
       actions={
         <>
           <ButtonLink href="/" size="lg">Browse rooms</ButtonLink>

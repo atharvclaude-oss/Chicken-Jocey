@@ -14,8 +14,9 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
 
   return (
     <ErrorScreen
-      code="Error"
-      title="Something went wrong."
+      code="Something broke"
+      title="The lights went out in this room."
+      mood="flicker"
       actions={
         <>
           <Button size="lg" onClick={() => retry()}>Try again</Button>
@@ -23,7 +24,7 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
         </>
       }
     >
-      This page didn&apos;t load properly. Trying again usually fixes it, and your cart is saved either way.
+      This page hit a snag while loading. Trying again usually fixes it, and everything in your cart is still saved.
       {error.digest && <span className="mt-3 block font-mono text-xs">Reference: {error.digest}</span>}
     </ErrorScreen>
   );
