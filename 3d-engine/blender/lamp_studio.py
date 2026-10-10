@@ -2,7 +2,8 @@
 
     blender -b --python lamp_studio.py -- <jobs.json> [--only slug] [--samples 160]
 
-The catalogue's covers: run from 3d-engine/ with blender/lamp_covers.json --samples 192.
+The Lamps department cover: run from 3d-engine/ with blender/lamp_covers.json --samples 192.
+(Collection covers are photos, see frontend/public/images/catalogue/SOURCES.md.)
 
 jobs.json is a list of {"slug", "model" (Poly Haven id), "out", optional "heading",
 "tilt", "fill", "glow" (bulb light watts), "emit" (glowing-material strength),
