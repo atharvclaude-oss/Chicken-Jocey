@@ -1,6 +1,8 @@
 // 3D room scenes produced by the Blender pipeline in /3d-engine.
 // TODO(backend): serve this from the rooms API alongside the 2D room data.
 
+import { roomItems } from "./catalog";
+
 /** A photoreal scanned room (Gaussian splat), shown instead of a baked model. */
 export interface SplatConfig {
   /** .ply / .spz / .splat file. */
@@ -40,11 +42,13 @@ export interface RoomScene {
   splat?: SplatConfig;
   /** Where walk mode starts, in room coordinates (meters from the front-left corner). */
   walkStart: { x: number; y: number; lookAt: { x: number; y: number } };
-  /** Catalogue products tagged (via productId) in the baked model. */
+  /** Catalogue products in this room (derived from `items`). */
   productIds: string[];
+  /** glTF root node name -> product id: every shoppable object (see room-catalog.json). */
+  items?: Record<string, string>;
 }
 
-export const scenes: RoomScene[] = [
+const baseScenes: RoomScene[] = [
   {
     id: "sleek-lounge-01",
     name: "Graphite Lounge",
@@ -107,6 +111,12 @@ export const scenes: RoomScene[] = [
     productIds: [],
   },
 ];
+
+/** Every room with its shoppable objects attached from the room catalogue. */
+export const scenes: RoomScene[] = baseScenes.map((s) => {
+  const items = roomItems[s.id] ?? {};
+  return { ...s, items, productIds: [...new Set(Object.values(items))] };
+});
 
 export async function getScenes(): Promise<RoomScene[]> {
   return scenes;

@@ -4,7 +4,7 @@
 // pays it in the CJ dashboard (My CJ > Orders), so approving a fulfilment never spends wallet money
 // on its own.
 
-import { CjClient, cjPidFromUrl, usdToCents } from "./cj.ts";
+import { bestRoute, CjClient, cjPidFromUrl, usdToCents } from "./cj.ts";
 import type { LiveOffer, PlacedOrder, SupplierAdapter, SupplierListingRef, Tracking } from "./supplier-adapter.ts";
 
 const ORDER_ONLY = 3;
@@ -28,22 +28,24 @@ export class CjSupplierAdapter implements SupplierAdapter {
     const stock = await this.cj.get<{ totalInventoryNum?: number }[]>(
       `/product/stock/queryByVid?vid=${encodeURIComponent(variant.vid)}`,
     );
-    const [ship] = await this.cj.freight(variant.vid);
+    const route = await bestRoute(this.cj, variant.vid);
     return {
-      available: Boolean(ship) && (stock ?? []).some((s) => (s.totalInventoryNum ?? 0) > 0),
+      available: Boolean(route) && (stock ?? []).some((s) => (s.totalInventoryNum ?? 0) > 0),
       unitCostCents: usdToCents(variant.variantSellPrice),
-      shippingCostCents: usdToCents(ship?.logisticPrice),
+      shippingCostCents: usdToCents(route?.freight.logisticPrice),
     };
   }
 
   async placeOrder({ listing, quantity, address, reference }: Parameters<SupplierAdapter["placeOrder"]>[0]): Promise<PlacedOrder> {
     const variant = await this.variant(listing);
-    const [ship] = await this.cj.freight(variant.vid, quantity, address.country);
-    if (!ship) throw new Error(`CJ has no shipping option to ${address.country}`);
+    // US warehouse first (many furniture listings ship only, and free, from there), then China.
+    const route = await bestRoute(this.cj, variant.vid, quantity, address.country, address.postalCode);
+    if (!route) throw new Error(`CJ has no shipping option to ${address.country}`);
+    const ship = route.freight;
     const order = await this.cj.createOrder({
       orderNumber: reference,
       payType: ORDER_ONLY,
-      fromCountryCode: "CN",
+      fromCountryCode: route.from,
       logisticName: ship.logisticName,
       shippingCountryCode: address.country,
       shippingCountry: countryName(address.country),
@@ -60,7 +62,7 @@ export class CjSupplierAdapter implements SupplierAdapter {
     return {
       supplierOrderId: order.orderId,
       costCents: usdToCents(variant.variantSellPrice) * quantity + usdToCents(ship.logisticPrice),
-      note: `Created unpaid in CJ (${ship.logisticName}). Pay it in CJ: My CJ > Orders.`,
+      note: `Created unpaid in CJ (${ship.logisticName} from ${route.from}). Pay it in CJ: My CJ > Orders.`,
     };
   }
 

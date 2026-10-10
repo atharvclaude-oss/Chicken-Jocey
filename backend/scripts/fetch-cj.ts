@@ -10,7 +10,8 @@
 //     exact variant named in the row's `option` (the variant name exactly as CJ shows it, e.g.
 //     "Monochrome Warm Light-Red Table Lamp-US")
 //   - reads the variant's price, packed size and weight, its stock across CJ warehouses, and the
-//     cheapest shipping option from CJ's China warehouse to the US
+//     best shipping route to the US: CJ's US warehouse first (furniture often ships only, and free,
+//     from there), then China and CJ's other warehouses, preferring delivery within 20 days
 // With --apply:
 //   - data/cj-variants.tsv gets the variant id, costs, stock and package (the seed turns these
 //     into orderable supplier listings; fulfilment orders by variant id)
@@ -31,7 +32,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { floorRetailCents } from "../src/modules/pricing/pricing.ts";
 import { CJ_VARIANT_COLUMNS, DATA_DIR, parseCjVariants, type CjVariantRow } from "../src/modules/sourcing/sourcing-sheet.ts";
-import { CjClient, cjPidFromUrl, usdToCents, type CjProduct } from "../src/modules/suppliers/cj.ts";
+import { bestRoute, CjClient, cjPidFromUrl, usdToCents, type CjProduct } from "../src/modules/suppliers/cj.ts";
 
 const IMAGES_DIR = fileURLToPath(new URL("../../frontend/public/images/products/", import.meta.url));
 const OFFERS_FILE = fileURLToPath(new URL("../../frontend/services/lamp-offers.ts", import.meta.url));
@@ -216,11 +217,13 @@ async function main() {
         problems.push(`${slug}: stock check failed (${err.message}); listed as out of stock`);
         return 0;
       });
-    const [ship] = await cj.freight(variant.vid).catch(() => []);
-    if (!ship) {
-      fail(`CJ has no shipping option to the US for "${option}"`);
+    // US warehouse first (furniture often ships only, and free, from there), then China and the rest.
+    const route = await bestRoute(cj, variant.vid);
+    if (!route) {
+      fail(`CJ has no shipping option to the US for "${option}" from any warehouse`);
       continue;
     }
+    const ship = route.freight;
 
     const row: CjVariantRow = {
       productSlug: slug,
@@ -267,7 +270,9 @@ async function main() {
   if (problems.length) console.log(`\n${problems.length} need attention:\n  ${problems.join("\n  ")}`);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+// Compare paths loosely: on Windows argv[1] and import.meta.url differ in slashes and drive-letter case.
+const norm = (p: string) => p.replace(/\\/g, "/").toLowerCase();
+if (process.argv[1] && norm(fileURLToPath(import.meta.url)) === norm(process.argv[1])) {
   main().catch((err) => {
     console.error(err instanceof Error ? err.message : err);
     process.exit(1);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
@@ -8,6 +9,7 @@ import type { Product } from "@shared/types";
 import type { RoomScene } from "@/services/scenes";
 import { useLoading } from "@/store/loading";
 import { track } from "@/utils/analytics";
+import { featuredCatalogueHref } from "@/utils/routes";
 import { replaceQuery } from "@/utils/url-state";
 import { RoomExperience3D } from "./RoomExperience3D";
 import { RoomRing } from "./RoomRing";
@@ -44,10 +46,13 @@ export function SceneCarousel({
   const index = ((target % count) + count) % count;
   const active = scenes[index];
 
-  // Keep the Room8 intro curtain down until the rooms are in.
+  // Keep the Room8 intro curtain down until the ring's rooms are in. A link
+  // straight into a room skips the ring, and the room shows its own loader.
   const { hold, release } = useLoading.getState();
   const held = useRef(false);
+  const startsInRoom = useRef(linked >= 0);
   useEffect(() => {
+    if (startsInRoom.current) return;
     hold();
     held.current = true;
     return () => {
@@ -177,6 +182,13 @@ export function SceneCarousel({
                     <CaretRight size={18} />
                   </RingButton>
                 </div>
+
+                <Link
+                  href={featuredCatalogueHref(active.id)}
+                  className="pointer-events-auto mt-4 rounded-full px-3 py-1.5 text-sm text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline"
+                >
+                  Featured catalogue
+                </Link>
 
                 <div className="pointer-events-auto mt-5 flex items-center gap-2" aria-label="Rooms">
                   {scenes.map((s, i) => (

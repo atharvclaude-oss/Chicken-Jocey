@@ -17,7 +17,8 @@
     "price-sheet": "tsx scripts/price-sheet.ts",
     "check-sourcing": "tsx scripts/check-sourcing.ts",
     "fetch-aliexpress": "tsx scripts/fetch-aliexpress.ts",
-    "fetch-cj": "tsx scripts/fetch-cj.ts"
+    "fetch-cj": "tsx scripts/fetch-cj.ts",
+    "cj:search": "tsx scripts/cj-search.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

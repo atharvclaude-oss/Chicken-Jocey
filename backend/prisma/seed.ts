@@ -46,7 +46,8 @@ async function main() {
     const data = {
       name: p.name,
       description: p.description,
-      status: p.available ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK,
+      // Coming-soon pieces (no supplier listing applied yet) stay out of the public catalogue.
+      status: p.comingSoon ? ProductStatus.DRAFT : p.available ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK,
       categoryId: categoryIds.get(p.category)!,
       dimensionsLabel: p.dimensions,
       shippingEstimate: p.shippingEstimate,

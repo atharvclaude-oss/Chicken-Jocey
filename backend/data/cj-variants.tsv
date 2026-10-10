@@ -1,4 +1,20 @@
 product_slug	pid	vid	variant_key	unit_cost_usd	shipping_usd	logistic	delivery_days	stock	package_cm	weight_kg	image	checked_at
+antique-bookcase	2029124548300988417	2029124549148237826	Walnut	173.56	0.00	Fedex US to US #7	3-5	78	92.5 x 89 x 19	44	/images/products/antique-bookcase-dee2ad3e.jpg	2026-10-10
+arc-abstract-print	1611631205869432832	1611631205982679042	Style D-50x70cm	1.49	6.18	GOFO+	3-8	11342	52 x 8 x 8	0.15	/images/products/arc-abstract-print-37a49108.jpg	2026-10-10
+arc-floor-lamp	2609181136061619600	2609181136071610617	Warm Light-BLACK-US	45.49	58.54	UniUni+	3-8	8082	185 x 90 x 30	6.05	/images/products/arc-floor-lamp-ac2db95b.jpg	2026-10-10
+black-bookshelf	2016343592195497985	2016343592296161282	Black	194.54	0.00	USPS US to US #17	3-5	127	195 x 37 x 20	39.2	/images/products/black-bookshelf-dcd33e43.jpg	2026-10-10
+black-office-chair	2100086616756178946	2100086616911368193	Black	104.08	0.00	USPS US to US #7	3-5	460	65 x 63 x 119.1	13.2	/images/products/black-office-chair-11e20501.jpg	2026-10-10
+boucle-throw-blanket	2604100747481620000	2604100747481620900	Khaki-127x170 Including Tassels	9.78	9.93	UniUni+	3-8	8483	30 x 20 x 3	0.52	/images/products/boucle-throw-blanket-4aae30f7.jpg	2026-10-10
+brown-boucle-rug	49A3C354-DC98-4C4F-B0CA-349418D8E4D6	39ABE8B4-AA64-4D4D-BC7C-32A638ECE450	Brown-120x160cm	5.86	14.85	GOFO+	3-8	11042	30 x 20 x 5	1.2	/images/products/brown-boucle-rug-e269f869.jpg	2026-10-10
+ceramic-bud-vase	2602280736461607500	2602280736461607900	Beige	14.76	12.77	UniUni+	3-8	9919	21 x 21 x 21	0.82	/images/products/ceramic-bud-vase-c5c7e22f.jpg	2026-10-10
+chesterfield-sofa	2063896783612387329	2063896790147112967	Brown	206.24	0.00	Fedex US to US #75	3-5	31	65 x 58 x 56	28.87	/images/products/chesterfield-sofa-accbdf91.jpg	2026-10-10
+cream-shag-rug	49A3C354-DC98-4C4F-B0CA-349418D8E4D6	0DFDD5F5-7CAB-4A8E-BE39-78B2F8093A68	Beige-120x160cm	5.86	14.85	GOFO+	3-8	13813	30 x 20 x 5	1.2	/images/products/cream-shag-rug-4d32b2c3.jpg	2026-10-10
+crystal-chandelier	2509231000431621500	2509231000431624300	E14 Lamp Holder-Gold-12 lights	31.51	38.13	UniUni+	3-8	6569	41 x 41 x 31	4.03	/images/products/crystal-chandelier-eb3589a7.jpg	2026-10-10
+dome-pendant-light	2606100728371612100	2606100728371615500	Warm Light-Gold	12.27	22.50	UniUni+	3-8	6272	35 x 35 x 37	1.95	/images/products/dome-pendant-light-4e6029fa.jpg	2026-10-10
+dusk-abstract-print	1401768428821417984	1401768430398476288	B-50x70cm	1.57	7.35	UniUni+	3-8	27978	35 x 7 x 7	0.27	/images/products/dusk-abstract-print-db3914eb.jpg	2026-10-10
+electric-fireplace-mantel	2049367885634367489	2049367887056236545	White	271.00	0.00	Fedex US to US #7	3-5	15	128 x 39 x 25	30.74	/images/products/electric-fireplace-mantel-82c5de3e.jpg	2026-10-10
+grey-shag-rug	49A3C354-DC98-4C4F-B0CA-349418D8E4D6	9AF25D06-C693-49FB-BE2B-F59678838620	Gray-120x160cm	5.86	14.85	GOFO+	3-8	13434	30 x 20 x 5	1.2	/images/products/grey-shag-rug-92e4d9b3.jpg	2026-10-10
+keyboard-mouse-set	B6947D08-15AE-4D8B-BD78-EC004647EFF1	E0AB8538-5902-419C-A5F4-EF241D65297F	White	5.00	9.93	UniUni+	3-8	13322	30 x 15 x 6	0.52	/images/products/keyboard-mouse-set-67005335.jpg	2026-10-10
 lamp-16-color-crystal-water-ripple-lamp	1759877515511865344	1759877515583168512	16Color Dimming-Plug In-USB	5.06	10.83	CJPacket Super Pure Electricity	5-11	11016	13 x 13 x 13	0.41	/images/products/lamp-16-color-crystal-water-ripple-lamp-4c9f9905.jpg	2026-10-10
 lamp-adjustable-color-modern-dining-pendant	2411150202201616100	2411150202201618200	White Large Size-With LED15 W Warm Light	13.27	42.76	CJPacket FJTY Eub Special Line	15-25	11311	36 x 36 x 25	1.75	/images/products/lamp-adjustable-color-modern-dining-pendant-d6574fb5.jpg	2026-10-10
 lamp-adjustable-led-reading-floor-lamp	2507151011171604900	2507160218001629500	18W-2700 6500K-US	13.27	47.93	YunExpress Sensitive	4-7	6315	25 x 8 x 39	2.74	/images/products/lamp-adjustable-led-reading-floor-lamp-ba0c1f4b.jpg	2026-10-10
@@ -93,3 +109,27 @@ lamp-walnut-pleated-floor-lamp-remote-dimming	1618899526436270080	16188995265033
 lamp-warm-dimmable-spiral-lamp	1764899844667215872	1764899844734324736	Large Spiral Lamp-USB	13.10	14.91	CJPacket Eub	12-50	12074	45 x 14 x 12	0.52	/images/products/lamp-warm-dimmable-spiral-lamp-0f6babaa.jpg	2026-10-10
 lamp-white-magnetic-mini-lamp	1496111468666556416	1496111468767219712	White	1.27	5.16	CJPacket Super Pure Electricity	5-11	36785	10.5 x 8 x 8	0.07	/images/products/lamp-white-magnetic-mini-lamp-93ee1eed.jpg	2026-10-10
 lamp-wood-grain-pleated-lamp-warm-light	1618899526436270080	1618899526503378945	warm light-Triangle	24.19	82.98	CJPacket Sea	25-30	13201	56 x 35 x 20	7.1	/images/products/lamp-wood-grain-pleated-lamp-warm-light-6de36f9c.jpg	2026-10-10
+linen-pillow-set-sand	1602198099961851904	1602198100049932288	Beige-30x50cm	10.10	7.35	UniUni+	3-8	11807	30 x 20 x 4	0.27	/images/products/linen-pillow-set-sand-ab39c085.jpg	2026-10-10
+linen-pillow-set-taupe	2601280841051619400	2601280841061614700	Combination1-Set-Pillowcase	40.30	8.69	UniUni+	3-8	5373	30 x 30 x 4	0.42	/images/products/linen-pillow-set-taupe-8366b3f3.jpg	2026-10-10
+mid-century-lounge-chair	2001112216619298818	2001112217017757698	Black 790x640x520 mm	181.78	0.00	USPS US to US #2	3-7	361	79 x 64 x 52	21.5	/images/products/mid-century-lounge-chair-af6108d8.jpg	2026-10-10
+modern-armchair	2081993301473218562	2081993302853144577	Blue	87.19	0.00	Fedex US to US #7	3-5	69	77.9 x 59 x 30.4	13.5	/images/products/modern-armchair-8ed257b7.jpg	2026-10-10
+modern-coffee-table	2095713934282342401	2095713934613692418	default title	97.34	0.00	Fedex US to US #9	3-5	230	95 x 60 x 15	9.5	/images/products/modern-coffee-table-de97036a.jpg	2026-10-10
+oak-side-table	2097084892290768898	2097084892433375234	default title	56.99	0.00	Fedex US to US #9	3-5	230	50 x 50 x 20	7.5	/images/products/oak-side-table-b7f29961.jpg	2026-10-10
+oak-slat-storage-bed	2056253949439246338	2056253949720264706	Default	230.86	0.00	USPS US to US #11	5-7	7	146 x 65 x 25	50	/images/products/oak-slat-storage-bed-62320491.jpg	2026-10-10
+oak-wardrobe	2027302853758214145	2027302853900820481	Natural	278.34	0.00	Fedex US to US #7	3-5	68	135.9 x 59.4 x 22.9	56.7	/images/products/oak-wardrobe-30f82187.jpg	2026-10-10
+persian-area-rug	2609020122121616800	2609020122121617743	YY 0625 04-200x300cm	26.04	57.73	GOFO GC parcel+	3-8	7650	35 x 32 x 5	6.62	/images/products/persian-area-rug-054bc264.jpg	2026-10-10
+racing-gaming-chair	2100088866530512897	2100088866719256578	Grey	127.73	0.00	USPS US to US #7	3-5	460	71.1 x 61 x 118.1	16.88	/images/products/racing-gaming-chair-ccd163ee.jpg	2026-10-10
+recessed-downlight	2037095488707133441	2037095489013317634	Default	56.79	0.00	UPS US to US #9	3-5	118	28.5 x 22.5 x 19.5	4	/images/products/recessed-downlight-f8c6e7fb.jpg	2026-10-10
+rustic-wooden-bookshelf	2082350889114816513	2082350889295171585	Default	122.01	0.00	USPS US to US #11	5-7	128	136 x 38.5 x 19.5	30.25	/images/products/rustic-wooden-bookshelf-aa3a08d6.jpg	2026-10-10
+small-potted-plant	1382235050925494272	1382235052393500672	Eucalyptus	1.18	7.49	UniUni+	3-8	40000	10 x 10 x 25	0.29	/images/products/small-potted-plant-a055e82d.jpg	2026-10-10
+tall-potted-plant	1988914212456402945	1988914212531900417	Green	34.32	0.00	Fedex US to US #40	1-3	81	88.5 x 20.5 x 21	5.9	/images/products/tall-potted-plant-4d28f9fd.jpg	2026-10-10
+taupe-boucle-rug	49A3C354-DC98-4C4F-B0CA-349418D8E4D6	EEB7F825-5B32-4446-A61A-D4739E491414	Khaki-120x160cm	5.86	14.85	GOFO+	3-8	14538	30 x 20 x 5	1.2	/images/products/taupe-boucle-rug-be318bca.jpg	2026-10-10
+three-seat-sofa	1989228071839522818	1989228071940186114	Gray	525.26	0.00	Fedex US to US #12	3-5	24	10 x 10 x 10	0.1	/images/products/three-seat-sofa-e8f81a66.jpg	2026-10-10
+tiffany-table-lamp	2609211055221626200	2609211055221627302	US-Diameter 20cm	35.42	23.83	UniUni+	3-8	7666	32 x 29 x 22	2.1	/images/products/tiffany-table-lamp-ff4dc99b.jpg	2026-10-10
+tripod-table-lamp	1589948285094211584	1589948285161320448	Table lamp-US	32.65	51.47	UniUni+	3-8	12647	75 x 41 x 41	5.1	/images/products/tripod-table-lamp-f7c50cc7.jpg	2026-10-10
+upholstered-daybed	2056629402026307585	2056629403821469698	Beige	294.51	0.00	Fedex US to US #7	3-5	67	195.5 x 37.5 x 15.8	25	/images/products/upholstered-daybed-55ade5b7.jpg	2026-10-10
+victorian-coffee-table	2062010504351809538	2062010506293772290	Ivory	220.27	0.00	Fedex US to US #176	5-7	39	137.2 x 81.3 x 15.2	18.6	/images/products/victorian-coffee-table-b8959172.jpg	2026-10-10
+victorian-side-table	2037094204808269826	2037094204942487554	Black	47.37	0.00	UPS US to US #17	3-5	44	57 x 57 x 12.5	4.4	/images/products/victorian-side-table-7b7a4e6d.jpg	2026-10-10
+walnut-media-console	2035189615837298690	2035189616059596801	Walnut	120.13	0.00	Fedex US to US #4	3-5	29	126 x 43.5 x 14	21.26	/images/products/walnut-media-console-a56e0b70.jpg	2026-10-10
+warm-abstract-print	1611631205869432832	1611631205965901826	Style B-50x70cm	1.49	6.18	GOFO+	3-8	14319	52 x 8 x 8	0.15	/images/products/warm-abstract-print-fa604a74.jpg	2026-10-10
+white-standing-desk	2013508821555015682	2013508821756342273	White	97.81	0.00	Fedex US to US #25	3-5	35	132.1 x 68.6 x 15.2	23.84	/images/products/white-standing-desk-01ff023a.jpg	2026-10-10

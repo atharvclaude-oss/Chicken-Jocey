@@ -1,5 +1,21 @@
 # Product sourcing
 
+## CJdropshipping (current path)
+
+Every product is fulfilled by one exact CJdropshipping product + variant: the lamp collections and every object in the 3D rooms (`frontend/services/room-catalog.json` maps each glTF object to a product). One pipeline handles both:
+
+1. `CJ_API_KEY` in `backend/.env` (cjdropshipping.com > My CJ > Authorization > API).
+2. Find a product: `npm run cj:search -- <product id>` (in `backend/`) searches CJ with the keywords in `data/cj-search.json` and writes a visual review page, `data/cj-candidates/index.html`. Only pick listings CJ can ship to the US.
+3. Add the pick to `data/product-sourcing.tsv` as a `CJDROPSHIPPING` `listing`: its CJ product URL and, in `option`, the variant name exactly as CJ shows it. One CJ variant can back only one product.
+4. `npm run fetch-cj -- <slug prefix> --apply` verifies it on CJ (on sale, exact variant, stock) and finds the best route to the US: CJ's US warehouse first (furniture often ships only, and free, from there), then China and CJ's other warehouses, preferring delivery within 20 days. It writes cost, shipping and stock to `data/cj-variants.tsv` (private), price, delivery and photo to `frontend/services/lamp-offers.ts` (public), and the photo to `frontend/public/images/products/`. Retail is the 2x floor on item + shipping.
+5. `npm run db:seed` loads the listings; `npm run check-sourcing` confirms every room object maps to a product with a listing.
+
+Until a room product is imported it shows as "coming soon": clickable in its room and listed in the room's featured catalogue (`/rooms/<room id>`), not buyable. Paid orders wait for admin approval; approval re-checks CJ's live stock and price and creates the CJ order **unpaid**, shipped from the best warehouse. Pay it in the CJ dashboard (My CJ > Orders); tracking comes back from CJ.
+
+Room products with no US-shippable match on CJ yet: 27-inch monitor, grandfather clock, framed oil portrait, checkerboard print, two-drawer nightstand, zebra roller blind, wingback armchair, velvet curtains.
+
+## Older marketplace sourcing (AliExpress / Alibaba)
+
 Supplier listings for the products tagged in the 3D rooms. Orders are fulfilled by buying from these listings and shipping to the customer. Customers never see supplier links or costs.
 
 **Status: nothing here is verified yet.** The links came from searching AliExpress and Alibaba. AliExpress pages require a login to view, so live prices, stock, colors and shipping times could not be checked. Before launch, someone on the team must open each link, choose the exact listing and variant, and record the cost.

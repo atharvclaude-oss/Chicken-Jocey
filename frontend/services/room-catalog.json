@@ -1,0 +1,636 @@
+{
+  "_about": "Every object in every 3D room, mapped to a product. `rooms` maps glTF root node names (a name also matches its `<name>_...` children, e.g. a blind's cassette) to product ids. A product is coming-soon until its CJdropshipping listing (backend/data/product-sourcing.tsv) is imported with `npm run fetch-cj -- <id> --apply`, which writes its price, photo and stock to lamp-offers.ts. Supplier ids and costs never live here.",
+  "products": [
+    {
+      "id": "walnut-media-console",
+      "name": "Walnut Media Console",
+      "category": "furniture",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Walnut",
+      "description": "Mid-century TV stand in walnut with a slatted sliding door, open shelves and splayed legs.",
+      "dimensions": ""
+    },
+    {
+      "id": "ceramic-bud-vase",
+      "name": "Swirl Ceramic Vase",
+      "category": "decor",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Beige",
+      "description": "Matte ceramic vase with a soft swirl, about 21 cm tall.",
+      "dimensions": "21 cm"
+    },
+    {
+      "id": "small-potted-plant",
+      "name": "Faux Eucalyptus in Pot",
+      "category": "decor",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Green",
+      "description": "Small artificial eucalyptus in a simple pot, for shelves and side tables.",
+      "dimensions": "25 cm tall"
+    },
+    {
+      "id": "tall-potted-plant",
+      "name": "Faux Ficus Tree",
+      "category": "decor",
+      "styles": [
+        "gaming-minimal",
+        "neocolonial",
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Green",
+      "description": "Five-foot artificial ficus tree in a weighted black pot.",
+      "dimensions": "5 ft"
+    },
+    {
+      "id": "arc-abstract-print",
+      "name": "Boho Arch Print",
+      "category": "wall-art",
+      "styles": [
+        "sleek-masculine",
+        "gaming-minimal"
+      ],
+      "color": "Cream and terracotta",
+      "description": "Minimal canvas print, an arch of fine lines under terracotta dots. Unframed.",
+      "dimensions": "50 x 70 cm"
+    },
+    {
+      "id": "warm-abstract-print",
+      "name": "Boho Sun Print",
+      "category": "wall-art",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Blush and terracotta",
+      "description": "Canvas print of a soft sunburst in warm neutrals. Unframed.",
+      "dimensions": "50 x 70 cm"
+    },
+    {
+      "id": "dusk-abstract-print",
+      "name": "Golden Sun Wave Print",
+      "category": "wall-art",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Teal and gold",
+      "description": "Canvas print of a gold sun over teal waves. Unframed.",
+      "dimensions": "50 x 70 cm"
+    },
+    {
+      "id": "checker-abstract-print",
+      "name": "Checkerboard Print",
+      "category": "wall-art",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Black and cream",
+      "description": "Graphic checkerboard print in a wide oak frame.",
+      "dimensions": ""
+    },
+    {
+      "id": "taupe-boucle-rug",
+      "name": "Plush Solid Rug",
+      "category": "rugs",
+      "styles": [
+        "sleek-masculine"
+      ],
+      "color": "Khaki",
+      "description": "Soft, fluffy solid-colour area rug.",
+      "dimensions": "120 x 160 cm"
+    },
+    {
+      "id": "brown-boucle-rug",
+      "name": "Plush Solid Rug",
+      "category": "rugs",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Brown",
+      "description": "Soft, fluffy solid-colour area rug.",
+      "dimensions": "120 x 160 cm"
+    },
+    {
+      "id": "cream-shag-rug",
+      "name": "Plush Solid Rug",
+      "category": "rugs",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Beige",
+      "description": "Soft, fluffy solid-colour area rug.",
+      "dimensions": "120 x 160 cm"
+    },
+    {
+      "id": "grey-shag-rug",
+      "name": "Plush Solid Rug",
+      "category": "rugs",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Grey",
+      "description": "Soft, fluffy solid-colour area rug.",
+      "dimensions": "120 x 160 cm"
+    },
+    {
+      "id": "persian-area-rug",
+      "name": "Distressed Persian-Style Rug",
+      "category": "rugs",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Blue-grey and ivory",
+      "description": "Large Persian-style rug with a soft, cashmere-look pile and a faded traditional pattern.",
+      "dimensions": "200 x 300 cm"
+    },
+    {
+      "id": "modern-coffee-table",
+      "name": "Modern Rectangular Coffee Table",
+      "category": "furniture",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Walnut and black",
+      "description": "Rectangular coffee table with a walnut-look top on angled black legs.",
+      "dimensions": ""
+    },
+    {
+      "id": "mid-century-lounge-chair",
+      "name": "Lounge Chair with Footrest",
+      "category": "seating",
+      "styles": [
+        "sleek-masculine"
+      ],
+      "color": "Black",
+      "description": "Faux leather lounge chair with a matching footrest.",
+      "dimensions": ""
+    },
+    {
+      "id": "modern-armchair",
+      "name": "Mid-Century Accent Chair",
+      "category": "seating",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Blue",
+      "description": "Accent chair with a wooden frame, open arms and a padded seat and back.",
+      "dimensions": ""
+    },
+    {
+      "id": "arc-floor-lamp",
+      "name": "Arc Floor Lamp",
+      "category": "lighting",
+      "styles": [
+        "sleek-masculine"
+      ],
+      "color": "Black",
+      "description": "Minimalist arching floor lamp with a dome shade and warm light. US plug.",
+      "dimensions": ""
+    },
+    {
+      "id": "dome-pendant-light",
+      "name": "Glass Globe Pendant Light",
+      "category": "lighting",
+      "styles": [
+        "sleek-masculine",
+        "warm-minimal"
+      ],
+      "color": "Gold",
+      "description": "Pendant light with clear glass globes on a gold frame, warm light.",
+      "dimensions": ""
+    },
+    {
+      "id": "three-seat-sofa",
+      "name": "Grey Fabric Sofa",
+      "category": "seating",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Grey",
+      "description": "Clean-lined fabric sofa with plush cushions.",
+      "dimensions": ""
+    },
+    {
+      "id": "oak-side-table",
+      "name": "Acacia Side Table",
+      "category": "furniture",
+      "styles": [
+        "warm-minimal",
+        "gaming-minimal"
+      ],
+      "color": "Natural acacia",
+      "description": "Solid acacia wood side table with a lower shelf.",
+      "dimensions": ""
+    },
+    {
+      "id": "rustic-wooden-bookshelf",
+      "name": "Industrial 5-Tier Bookshelf",
+      "category": "furniture",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Rustic wood and black metal",
+      "description": "Tall five-tier bookshelf in rustic wood on a black metal frame.",
+      "dimensions": ""
+    },
+    {
+      "id": "oak-slat-storage-bed",
+      "name": "Channel-Tufted Storage Bed",
+      "category": "furniture",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Cream",
+      "description": "Upholstered bed with a vertical channel-tufted headboard and storage drawers.",
+      "dimensions": ""
+    },
+    {
+      "id": "upholstered-daybed",
+      "name": "Tufted Upholstered Daybed",
+      "category": "furniture",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Beige",
+      "description": "Twin daybed with a button-tufted upholstered frame and a pull-out trundle.",
+      "dimensions": "Twin"
+    },
+    {
+      "id": "linen-pillow-set-taupe",
+      "name": "Tufted Pillow Set",
+      "category": "decor",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Cream and brown",
+      "description": "Set of textured pillow covers: a cream weave, a brown abstract tuft and a solid brown.",
+      "dimensions": ""
+    },
+    {
+      "id": "linen-pillow-set-sand",
+      "name": "Beige Linen Pillow Cover",
+      "category": "decor",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Beige",
+      "description": "Simple cotton-linen pillow cover in beige.",
+      "dimensions": "30 x 50 cm"
+    },
+    {
+      "id": "boucle-throw-blanket",
+      "name": "Chenille Knit Throw",
+      "category": "decor",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Khaki",
+      "description": "Soft chenille knitted throw with tasselled ends.",
+      "dimensions": "127 x 170 cm"
+    },
+    {
+      "id": "tripod-table-lamp",
+      "name": "Tripod Table Lamp",
+      "category": "lighting",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "Black and gold",
+      "description": "Tripod table lamp with a drum shade. US plug.",
+      "dimensions": ""
+    },
+    {
+      "id": "white-standing-desk",
+      "name": "Electric Standing Desk",
+      "category": "desk",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "White frame, oak-look top",
+      "description": "Electric height-adjustable desk with a white frame.",
+      "dimensions": ""
+    },
+    {
+      "id": "27-inch-monitor",
+      "name": "27-inch Monitor",
+      "category": "electronics",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "Black",
+      "description": "Slim-bezel 27-inch monitor on a height-adjustable stand.",
+      "dimensions": "27 in"
+    },
+    {
+      "id": "keyboard-mouse-set",
+      "name": "Wireless Keyboard and Mouse",
+      "category": "electronics",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "White",
+      "description": "Slim wireless keyboard and mouse set.",
+      "dimensions": ""
+    },
+    {
+      "id": "racing-gaming-chair",
+      "name": "Racing Gaming Chair",
+      "category": "seating",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Black and grey",
+      "description": "Racing-style gaming chair with a high back and padded arms.",
+      "dimensions": ""
+    },
+    {
+      "id": "black-office-chair",
+      "name": "Mesh Office Chair",
+      "category": "seating",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Black",
+      "description": "High-back ergonomic mesh office chair.",
+      "dimensions": ""
+    },
+    {
+      "id": "oak-wardrobe",
+      "name": "Two-Door Wood Wardrobe",
+      "category": "furniture",
+      "styles": [
+        "gaming-minimal"
+      ],
+      "color": "Natural wood",
+      "description": "Two-door wardrobe with hanging space, a mirror panel and drawers.",
+      "dimensions": ""
+    },
+    {
+      "id": "dark-nightstand",
+      "name": "Two-Drawer Nightstand",
+      "category": "furniture",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Charcoal",
+      "description": "Compact two-drawer nightstand in charcoal.",
+      "dimensions": "42 x 38 x 55 cm"
+    },
+    {
+      "id": "black-bookshelf",
+      "name": "Black 5-Tier Bookcase",
+      "category": "furniture",
+      "styles": [
+        "warm-minimal"
+      ],
+      "color": "Black",
+      "description": "Open five-tier bookcase with a black metal frame.",
+      "dimensions": ""
+    },
+    {
+      "id": "zebra-roller-blind",
+      "name": "Zebra Roller Blind",
+      "category": "decor",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "Sand",
+      "description": "Dual-layer zebra roller blind: sheer and solid bands for soft, adjustable light.",
+      "dimensions": ""
+    },
+    {
+      "id": "recessed-downlight",
+      "name": "LED Recessed Downlights, 12-Pack",
+      "category": "lighting",
+      "styles": [
+        "gaming-minimal",
+        "warm-minimal"
+      ],
+      "color": "White",
+      "description": "Twelve slim 6-inch LED recessed ceiling lights.",
+      "dimensions": "6 in"
+    },
+    {
+      "id": "chesterfield-sofa",
+      "name": "Leather Loveseat",
+      "category": "seating",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Brown",
+      "description": "Brown leather loveseat with a retro silhouette and wooden legs.",
+      "dimensions": ""
+    },
+    {
+      "id": "wingback-chair",
+      "name": "Wingback Armchair",
+      "category": "seating",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Leather",
+      "description": "Classic high-back wingback armchair.",
+      "dimensions": ""
+    },
+    {
+      "id": "victorian-coffee-table",
+      "name": "French Antique Coffee Table",
+      "category": "furniture",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Ivory",
+      "description": "Oval coffee table in an antique ivory finish with curved legs.",
+      "dimensions": ""
+    },
+    {
+      "id": "victorian-side-table",
+      "name": "Round Pedestal Side Table",
+      "category": "furniture",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Black",
+      "description": "Small round side table on a turned wooden pedestal.",
+      "dimensions": "40 cm"
+    },
+    {
+      "id": "tiffany-table-lamp",
+      "name": "Stained Glass Table Lamp",
+      "category": "lighting",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Stained glass",
+      "description": "European-style stained-glass table lamp, 20 cm shade. US plug.",
+      "dimensions": "20 cm shade"
+    },
+    {
+      "id": "antique-bookcase",
+      "name": "Glass-Door Bookcase",
+      "category": "furniture",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Walnut",
+      "description": "Closed-back bookcase in walnut with glass doors.",
+      "dimensions": ""
+    },
+    {
+      "id": "velvet-curtains",
+      "name": "Velvet Curtains",
+      "category": "decor",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Deep red",
+      "description": "Heavy floor-length velvet curtains, a pair.",
+      "dimensions": ""
+    },
+    {
+      "id": "crystal-chandelier",
+      "name": "Candle Crystal Chandelier",
+      "category": "lighting",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Gold",
+      "description": "Wrought-iron candle chandelier with crystal drops, twelve lights.",
+      "dimensions": ""
+    },
+    {
+      "id": "electric-fireplace-mantel",
+      "name": "Electric Fireplace with Mantel",
+      "category": "furniture",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "White",
+      "description": "Electric fireplace insert in a classic white mantel surround.",
+      "dimensions": ""
+    },
+    {
+      "id": "framed-oil-portrait",
+      "name": "Framed Oil Portrait",
+      "category": "wall-art",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Gilt frame",
+      "description": "Classical oil-style portrait in an ornate gilt frame.",
+      "dimensions": ""
+    },
+    {
+      "id": "grandfather-clock",
+      "name": "Grandfather Clock",
+      "category": "decor",
+      "styles": [
+        "neocolonial"
+      ],
+      "color": "Dark wood",
+      "description": "Tall pendulum floor clock in dark wood.",
+      "dimensions": ""
+    }
+  ],
+  "rooms": {
+    "sleek-lounge-01": {
+      "modern_wooden_cabinet_0": "walnut-media-console",
+      "ceramic_vase_03_1": "ceramic-bud-vase",
+      "potted_plant_04_2": "small-potted-plant",
+      "framed_print_3": "arc-abstract-print",
+      "rug_4": "taupe-boucle-rug",
+      "modern_coffee_table_01_5": "modern-coffee-table",
+      "mid_century_lounge_chair_6": "mid-century-lounge-chair",
+      "modern_arm_chair_01_7": "modern-armchair",
+      "modern_arm_chair_01_8": "modern-armchair",
+      "arc_floor_lamp_9": "arc-floor-lamp",
+      "modern_ceiling_lamp_01_10": "dome-pendant-light",
+      "potted_plant_02_11": "tall-potted-plant"
+    },
+    "living-room-02": {
+      "sofa_02_0": "three-seat-sofa",
+      "modern_coffee_table_01_1": "modern-coffee-table",
+      "rug_2": "brown-boucle-rug",
+      "modern_arm_chair_01_3": "modern-armchair",
+      "side_table_01_4": "oak-side-table",
+      "ceramic_vase_03_5": "ceramic-bud-vase",
+      "modern_wooden_cabinet_6": "walnut-media-console",
+      "framed_print_7": "checker-abstract-print",
+      "modern_ceiling_lamp_01_9": "dome-pendant-light",
+      "wooden_bookshelf_worn_10": "rustic-wooden-bookshelf",
+      "potted_plant_02_11": "tall-potted-plant",
+      "potted_plant_04_12": "small-potted-plant"
+    },
+    "zeke-bedroom-01": {
+      "bed_0": "oak-slat-storage-bed",
+      "pillows_1": "linen-pillow-set-taupe",
+      "throw_2": "boucle-throw-blanket",
+      "side_table_01_3": "oak-side-table",
+      "tripod_lamp_4": "tripod-table-lamp",
+      "rug_5": "cream-shag-rug",
+      "desk_6": "white-standing-desk",
+      "monitor_7": "27-inch-monitor",
+      "monitor_8": "27-inch-monitor",
+      "keyboard_9": "keyboard-mouse-set",
+      "office_chair_10": "racing-gaming-chair",
+      "cabinet_11": "oak-wardrobe",
+      "framed_print_12": "arc-abstract-print",
+      "potted_plant_01_13": "tall-potted-plant",
+      "ceiling_light_14": "recessed-downlight",
+      "ceiling_light_15": "recessed-downlight",
+      "window_front_0_blind": "zebra-roller-blind",
+      "window_right_0_blind": "zebra-roller-blind"
+    },
+    "samir-room-01": {
+      "bed_0": "upholstered-daybed",
+      "pillows_1": "linen-pillow-set-sand",
+      "desk_2": "white-standing-desk",
+      "monitor_3": "27-inch-monitor",
+      "keyboard_4": "keyboard-mouse-set",
+      "office_chair_5": "black-office-chair",
+      "cabinet_6": "dark-nightstand",
+      "tripod_lamp_7": "tripod-table-lamp",
+      "bookshelf_8": "black-bookshelf",
+      "rug_9": "grey-shag-rug",
+      "framed_print_10": "warm-abstract-print",
+      "framed_print_11": "dusk-abstract-print",
+      "framed_print_12": "checker-abstract-print",
+      "ceiling_light_13": "recessed-downlight",
+      "ceiling_light_14": "recessed-downlight",
+      "window_back_0_blind": "zebra-roller-blind"
+    },
+    "neocolonial-parlour-01": {
+      "sketchfab_0": "persian-area-rug",
+      "sketchfab_1": "electric-fireplace-mantel",
+      "sketchfab_2": "framed-oil-portrait",
+      "vintage_grandfather_clock_01_3": "grandfather-clock",
+      "potted_plant_02_4": "tall-potted-plant",
+      "sketchfab_5": "chesterfield-sofa",
+      "sketchfab_6": "wingback-chair",
+      "sketchfab_7": "wingback-chair",
+      "sketchfab_8": "victorian-coffee-table",
+      "sketchfab_9": "victorian-side-table",
+      "sketchfab_10": "victorian-side-table",
+      "sketchfab_11": "tiffany-table-lamp",
+      "sketchfab_12": "tiffany-table-lamp",
+      "sketchfab_13": "antique-bookcase",
+      "sketchfab_14": "velvet-curtains",
+      "sketchfab_15": "crystal-chandelier"
+    }
+  }
+}

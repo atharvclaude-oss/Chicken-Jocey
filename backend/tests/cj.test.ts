@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { floorRetailCents } from "../src/modules/pricing/pricing.ts";
 import { parseCjVariants, parsePriceSheet, parseProductSourcing } from "../src/modules/sourcing/sourcing-sheet.ts";
-import { CjClient } from "../src/modules/suppliers/cj.ts";
+import { bestFreight, bestRoute, CjClient, maxDays } from "../src/modules/suppliers/cj.ts";
 import { CjSupplierAdapter } from "../src/modules/suppliers/cj-adapter.ts";
 import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -128,5 +128,29 @@ describe("CJ import plumbing", () => {
     expect(meta.width! / meta.height!).toBeCloseTo(0.8, 2);
     const { data } = await sharp(out).extract({ left: 0, top: 0, width: 1, height: 1 }).raw().toBuffer({ resolveWithObject: true });
     expect(Math.abs(data[0]! - 0xe0)).toBeLessThan(4);
+  });
+});
+
+describe("CJ shipping routes", () => {
+  const sea = { logisticName: "Sea", logisticPrice: 3, logisticAging: "25-30" };
+  const packet = { logisticName: "CJPacket", logisticPrice: 6.25, logisticAging: "7-12" };
+  /** A stub client whose freight quotes depend on the warehouse. */
+  const quotes = (byWarehouse: Record<string, (typeof packet)[]>) => ({
+    freight: async (_vid: string, _q?: number, _c?: string, from = "CN") => byWarehouse[from] ?? [],
+  });
+
+  it("prefers the cheapest option that arrives within 20 days; sea freight only as a last resort", () => {
+    expect(bestFreight([sea, packet])?.logisticName).toBe("CJPacket");
+    expect(bestFreight([sea])?.logisticName).toBe("Sea");
+    expect(bestFreight([])).toBeNull();
+    expect(maxDays("7-12")).toBe(12);
+  });
+
+  it("ships from the US warehouse first, falls back to China, and reports when nothing ships", async () => {
+    const usFree = { logisticName: "USPS US to US", logisticPrice: 0, logisticAging: "3-5" };
+    expect(await bestRoute(quotes({ US: [usFree], CN: [packet] }), "v")).toEqual({ from: "US", freight: usFree });
+    expect(await bestRoute(quotes({ CN: [packet] }), "v")).toEqual({ from: "CN", freight: packet });
+    expect(await bestRoute(quotes({ CN: [sea] }), "v")).toEqual({ from: "CN", freight: sea });
+    expect(await bestRoute(quotes({}), "v")).toBeNull();
   });
 });

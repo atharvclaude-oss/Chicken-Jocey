@@ -49,6 +49,13 @@ export interface CjFreight {
   logisticAging?: string;
 }
 
+export interface CjSearchHit {
+  id: string;
+  nameEn: string;
+  bigImage: string;
+  sellPrice: string | number;
+}
+
 export interface CjOrderDetail {
   orderId: string;
   orderStatus?: string;
@@ -98,14 +105,22 @@ export class CjClient {
     return run;
   }
 
+  /** One call; CJ's own rate counter is sometimes stricter than our spacing, so back off and retry. */
   private async raw<T>(path: string, init: RequestInit = {}): Promise<T> {
-    return this.throttle(async () => {
-      const res = await fetch(`${API}${path}`, init);
-      const body = (await res.json().catch(() => null)) as CjResponse<T> | null;
-      if (!body) throw new CjError(`${path}: HTTP ${res.status}`);
-      if (!body.result) throw new CjError(`${path}: ${body.code} ${body.message}`, body.code);
-      return body.data;
-    });
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.throttle(async () => {
+          const res = await fetch(`${API}${path}`, init);
+          const body = (await res.json().catch(() => null)) as CjResponse<T> | null;
+          if (!body) throw new CjError(`${path}: HTTP ${res.status}`);
+          if (!body.result) throw new CjError(`${path}: ${body.code} ${body.message}`, body.code);
+          return body.data;
+        });
+      } catch (err) {
+        if (!(err instanceof CjError) || !/too many requests|qps/i.test(err.message) || attempt >= 4) throw err;
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      }
+    }
   }
 
   private async accessToken(): Promise<string> {
@@ -140,14 +155,23 @@ export class CjClient {
     return this.get<CjProduct>(`/product/query?pid=${encodeURIComponent(pid)}`);
   }
 
-  /** Shipping options from CJ's China warehouse to `country`, cheapest first. */
-  async freight(vid: string, quantity = 1, country = "US"): Promise<CjFreight[]> {
+  /** Shipping options from a CJ warehouse (default China) to `country`, cheapest first. */
+  async freight(vid: string, quantity = 1, country = "US", from = "CN", zip?: string): Promise<CjFreight[]> {
     const options = await this.post<CjFreight[]>("/logistic/freightCalculate", {
-      startCountryCode: "CN",
+      startCountryCode: from,
       endCountryCode: country,
+      ...(zip ? { zip } : {}),
       products: [{ vid, quantity }],
     });
     return [...(options ?? [])].sort((a, b) => Number(a.logisticPrice) - Number(b.logisticPrice));
+  }
+
+  /** Keyword search of CJ's catalogue (first page), for finding candidate products. */
+  async searchProducts(keyWord: string, size = 10): Promise<CjSearchHit[]> {
+    const data = await this.get<{ content?: { productList?: CjSearchHit[] }[] }>(
+      `/product/listV2?keyWord=${encodeURIComponent(keyWord)}&page=1&size=${size}`,
+    );
+    return (data?.content ?? []).flatMap((c) => c.productList ?? []);
   }
 
   createOrder(body: Record<string, unknown>) {
@@ -166,3 +190,40 @@ export const cjPidFromUrl = (url: string) => url.match(/cjdropshipping\.com\/pro
 export const cjStock = (v: CjVariant) => (v.inventories ?? []).reduce((n, i) => n + (i.totalInventory ?? 0), 0);
 
 export const usdToCents = (usd: number | string | undefined) => Math.round(Number(usd ?? 0) * 100);
+
+/** Slowest delivery day in a CJ window like "7-12" (Infinity when unknown). */
+export const maxDays = (aging: string | undefined) => Math.max(...((aging ?? "").match(/\d+/g) ?? ["Infinity"]).map(Number));
+
+/** Delivery we quote by default; slower lines (sea freight) are a last resort. */
+export const MAX_DELIVERY_DAYS = 20;
+
+/** Cheapest option that arrives within MAX_DELIVERY_DAYS, else the cheapest at all. */
+export function bestFreight(options: CjFreight[]): CjFreight | null {
+  const byPrice = [...options].sort((a, b) => Number(a.logisticPrice) - Number(b.logisticPrice));
+  return byPrice.find((o) => maxDays(o.logisticAging) <= MAX_DELIVERY_DAYS) ?? byPrice[0] ?? null;
+}
+
+/** CJ warehouses to try. Many furniture listings only stock (and ship free) from the US one. */
+export const CJ_WAREHOUSES = ["US", "CN", "DE", "GB", "FR", "CZ", "PL", "TH", "AU", "BR", "MX"];
+
+/**
+ * Best shipping route for a variant: the US warehouse first (domestic, fastest), then China and
+ * CJ's other warehouses. Returns the first route that delivers within MAX_DELIVERY_DAYS, else the
+ * cheapest route found, else null (CJ can't ship this variant to `country` at all).
+ */
+export async function bestRoute(
+  cj: Pick<CjClient, "freight">,
+  vid: string,
+  quantity = 1,
+  country = "US",
+  zip?: string,
+): Promise<{ from: string; freight: CjFreight } | null> {
+  let fallback: { from: string; freight: CjFreight } | null = null;
+  for (const from of CJ_WAREHOUSES) {
+    const best = bestFreight(await cj.freight(vid, quantity, country, from, zip).catch(() => []));
+    if (!best) continue;
+    if (maxDays(best.logisticAging) <= MAX_DELIVERY_DAYS) return { from, freight: best };
+    if (!fallback || Number(best.logisticPrice) < Number(fallback.freight.logisticPrice)) fallback = { from, freight: best };
+  }
+  return fallback;
+}

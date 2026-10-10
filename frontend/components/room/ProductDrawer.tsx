@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Truck } from "@phosphor-icons/react";
 import type { Product } from "@shared/types";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { ProductImage } from "@/components/catalogue/ProductImage";
 import { buttonClass } from "@/components/common/Button";
 import { Panel } from "@/components/common/Panel";
 import { categoryLabels } from "@/utils/categories";
@@ -29,7 +29,13 @@ export function ProductDrawer({
       footer={
         product && (
           <div className="space-y-2">
-            <AddToCartButton product={product} source="room" roomId={roomId} className="w-full" />
+            {product.comingSoon ? (
+              <p className="rounded-control bg-sunken px-4 py-3 text-center text-sm text-muted">
+                Being sourced. You&apos;ll be able to buy this exact piece soon.
+              </p>
+            ) : (
+              <AddToCartButton product={product} source="room" roomId={roomId} className="w-full" />
+            )}
             <Link href={`/products/${product.slug}`} className={buttonClass({ variant: "ghost", size: "md", className: "w-full" })}>
               View details
             </Link>
@@ -40,15 +46,15 @@ export function ProductDrawer({
       {product && (
         <div key={product.id}>
           <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-sunken">
-            <Image src={product.image} alt={product.name} fill sizes="420px" className="object-cover" />
+            <ProductImage product={product} sizes="420px" />
           </div>
           <div className="mt-5 flex items-start justify-between gap-4">
             <h2 className="text-2xl font-semibold tracking-tight">{product.name}</h2>
-            <p className="pt-1 font-mono text-lg tabular-nums">{product.priceCents > 0 ? formatPrice(product.priceCents) : "Price soon"}</p>
+            <p className="pt-1 font-mono text-lg tabular-nums">{product.comingSoon ? "Soon" : product.priceCents > 0 ? formatPrice(product.priceCents) : "Price soon"}</p>
           </div>
           {product.color && <p className="mt-1 text-sm text-muted">{product.color}</p>}
 
-          {product.available ? (
+          {product.comingSoon ? null : product.available ? (
             <p className="mt-4 inline-flex items-center gap-2 text-sm">
               <Truck size={18} className="text-muted" /> {product.shippingEstimate}
             </p>
@@ -62,10 +68,12 @@ export function ProductDrawer({
           )}
 
           <p className="mt-4 leading-relaxed text-muted">{product.description}</p>
-          <dl className="mt-5 grid grid-cols-[110px_1fr] gap-y-2 text-sm">
-            <dt className="text-muted">Dimensions</dt>
-            <dd>{product.dimensions}</dd>
-          </dl>
+          {product.dimensions && (
+            <dl className="mt-5 grid grid-cols-[110px_1fr] gap-y-2 text-sm">
+              <dt className="text-muted">Dimensions</dt>
+              <dd>{product.dimensions}</dd>
+            </dl>
+          )}
 
           {otherRoomCount > 0 && (
             <Link

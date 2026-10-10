@@ -20,9 +20,19 @@ export type ViewMode = "overview" | "walk";
 const toWorld = (x: number, y: number, z = 0) => new THREE.Vector3(x, z, -y);
 const EYE = 1.6;
 
-/** Walk up the parent chain to find the glTF extras tag for a product. */
-function productIdOf(obj: THREE.Object3D | null): string | null {
+/**
+ * Which product an object belongs to: the room's item map (glTF root node name
+ * -> product, where a name also covers its `<name>_...` parts, e.g. a blind's
+ * cassette) wins; otherwise the glTF extras tag baked into the model.
+ */
+function productIdOf(obj: THREE.Object3D | null, items: Record<string, string> = {}): string | null {
   for (let o = obj; o; o = o.parent) {
+    const name = o.name;
+    if (name) {
+      if (items[name]) return items[name];
+      const key = Object.keys(items).find((k) => name.startsWith(`${k}_`));
+      if (key) return items[key];
+    }
     if (typeof o.userData?.productId === "string") return o.userData.productId;
   }
   return null;
@@ -73,11 +83,11 @@ function Room({
         }
       }
       if (name.startsWith("ceiling")) walls.ceiling.push(mesh);
-      const pid = productIdOf(mesh);
+      const pid = productIdOf(mesh, room.items);
       if (pid) (productMeshes[pid] ??= []).push(mesh);
     });
     return { walls, productMeshes };
-  }, [scene]);
+  }, [scene, room.items]);
 
   // Dollhouse cutaway: hide whichever walls sit between the camera and the room.
   useFrame(() => {
@@ -108,7 +118,7 @@ function Room({
   const handleMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     const hit = firstVisible(e);
-    const pid = hit ? productIdOf(hit.object) : null;
+    const pid = hit ? productIdOf(hit.object, room.items) : null;
     onHover(pid && products[pid] ? pid : null, hit?.point);
   };
 
@@ -117,7 +127,7 @@ function Room({
     e.stopPropagation();
     const hit = firstVisible(e);
     if (!hit) return;
-    const pid = productIdOf(hit.object);
+    const pid = productIdOf(hit.object, room.items);
     if (pid && products[pid]) return onSelect(pid);
     // Walk mode: clicking the floor glides you there.
     if (mode === "walk" && hit.object.name.startsWith("floor") && hit.face && hit.face.normal.y > 0.5) {
@@ -332,7 +342,8 @@ export function RoomCanvas({
       {product && hover && (
         <Html position={hover.point} center style={{ pointerEvents: "none" }} zIndexRange={[30, 0]}>
           <div className="-translate-y-8 whitespace-nowrap rounded-full bg-black/70 px-3 py-1.5 text-xs text-white backdrop-blur-md">
-            {product.name} <span className="ml-1 font-mono text-white/80">{formatPrice(product.priceCents)}</span>
+            {product.name}{" "}
+            <span className="ml-1 font-mono text-white/80">{product.comingSoon ? "Coming soon" : formatPrice(product.priceCents)}</span>
           </div>
         </Html>
       )}

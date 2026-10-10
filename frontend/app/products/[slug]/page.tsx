@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Cube, Truck } from "@phosphor-icons/react/ssr";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { ProductImage } from "@/components/catalogue/ProductImage";
 import { categoryLabels, getProduct, getProductHome, getProducts, getRoomsByProduct, styleName } from "@/services/products";
 import { formatPrice } from "@/utils/format";
 import { roomHref } from "@/utils/routes";
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<"/products/[slug]">
   return {
     title: product.name,
     description: product.description,
-    openGraph: { images: [product.image] },
+    openGraph: product.image ? { images: [product.image] } : undefined,
   };
 }
 
@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
         <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-sunken lg:aspect-[5/6]">
-          <Image src={product.image} alt={product.name} fill preload sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" />
+          <ProductImage product={product} preload sizes="(min-width: 1024px) 55vw, 100vw" />
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start lg:pt-4">
@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           </p>
           <h1 className="mt-2 text-4xl font-semibold tracking-tighter md:text-5xl">{product.name}</h1>
           <p className="mt-4 font-mono text-2xl tabular-nums">
-            {product.priceCents > 0 ? formatPrice(product.priceCents) : "Price coming soon"}
+            {product.comingSoon ? "Coming soon" : product.priceCents > 0 ? formatPrice(product.priceCents) : "Price coming soon"}
           </p>
 
           <p className="mt-6 max-w-[48ch] leading-relaxed text-muted">{product.description}</p>
@@ -63,16 +63,26 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
                 <dd>{product.color}</dd>
               </>
             )}
-            <dt className="text-muted">Dimensions</dt>
-            <dd>{product.dimensions}</dd>
+            {product.dimensions && (
+              <>
+                <dt className="text-muted">Dimensions</dt>
+                <dd>{product.dimensions}</dd>
+              </>
+            )}
             <dt className="text-muted">Shipping</dt>
             <dd className="inline-flex items-center gap-2">
               <Truck size={16} className="text-muted" />
-              {product.available ? product.shippingEstimate : "Currently unavailable"}
+              {product.comingSoon ? "Being sourced" : product.available ? product.shippingEstimate : "Currently unavailable"}
             </dd>
           </dl>
 
-          <AddToCartButton product={product} source="catalogue" className="mt-8 w-full sm:w-auto sm:min-w-[320px]" />
+          {product.comingSoon ? (
+            <p className="mt-8 max-w-[48ch] rounded-control bg-sunken px-4 py-3 text-sm text-muted">
+              Being sourced. You&apos;ll be able to buy this exact piece soon.
+            </p>
+          ) : (
+            <AddToCartButton product={product} source="catalogue" className="mt-8 w-full sm:w-auto sm:min-w-[320px]" />
+          )}
         </div>
       </div>
 

@@ -4,6 +4,7 @@
 //
 
 import type { Product, RoomStyle } from "@shared/types";
+import { catalogProducts } from "./catalog";
 import { lampOffers } from "./lamp-offers";
 
 export const styles: RoomStyle[] = [
@@ -64,7 +65,7 @@ const p = (id: string, name: string, fallbackCents: number, color: string, descr
   available: lampOffers[id]?.available ?? false,
 });
 
-export const products: Product[] = [
+const lampProducts: Product[] = [
   p("lamp-rechargeable-metal-accent-lamp", "Rechargeable Metal Accent Lamp", 1299, "",
     "Clean lines, matte finishes, understated design. From our Modern Essentials collection."),
   p("lamp-black-rechargeable-breathing-lamp", "Black Rechargeable Breathing Lamp", 1399, "Black",
@@ -254,6 +255,10 @@ export const products: Product[] = [
   p("lamp-adjustable-color-modern-dining-pendant", "Adjustable Color Modern Dining Pendant", 2899, "",
     "Floor lamps and larger decorative pieces. From our Living Room Favorites collection."),
 ];
+
+// Every product: the lamp collections plus every object in the 3D rooms (catalog.ts;
+// coming-soon until its CJ listing is imported).
+export const products: Product[] = [...lampProducts, ...catalogProducts];
 
 export interface CatalogueCollection {
   slug: string;
