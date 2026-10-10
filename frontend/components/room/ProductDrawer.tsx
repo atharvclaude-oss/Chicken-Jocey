@@ -44,9 +44,9 @@ export function ProductDrawer({
           </div>
           <div className="mt-5 flex items-start justify-between gap-4">
             <h2 className="text-2xl font-semibold tracking-tight">{product.name}</h2>
-            <p className="pt-1 font-mono text-lg tabular-nums">{formatPrice(product.priceCents)}</p>
+            <p className="pt-1 font-mono text-lg tabular-nums">{product.priceCents > 0 ? formatPrice(product.priceCents) : "Price soon"}</p>
           </div>
-          <p className="mt-1 text-sm text-muted">{product.color}</p>
+          {product.color && <p className="mt-1 text-sm text-muted">{product.color}</p>}
 
           {product.available ? (
             <p className="mt-4 inline-flex items-center gap-2 text-sm">
@@ -55,7 +55,7 @@ export function ProductDrawer({
           ) : (
             <p className="mt-4 rounded-control bg-sunken px-3 py-2.5 text-sm">
               Currently unavailable.{" "}
-              <Link href={`/catalogue?category=${product.category}`} className="font-medium underline underline-offset-4">
+              <Link href="/catalogue" className="font-medium underline underline-offset-4">
                 See similar {categoryLabels[product.category].toLowerCase()}
               </Link>
             </p>

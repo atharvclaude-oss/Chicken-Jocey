@@ -32,6 +32,8 @@ export interface PlacedOrder {
   supplierOrderId: string;
   /** What we were charged in total (items + shipping). */
   costCents: number;
+  /** Anything the admin still has to do at the supplier (e.g. pay the order). */
+  note?: string;
 }
 
 export interface Tracking {

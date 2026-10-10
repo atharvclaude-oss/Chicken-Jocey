@@ -132,9 +132,38 @@ To finish a product: open the link, pick the exact item, add it to
 `sourcing.tsv` with its cost, set the row in `product-sourcing.tsv` to
 `listing` with that `sku`, then re-seed.
 
+## CJdropshipping import (the lamp catalogue)
+
+CJ products are imported through CJ's official API (`CJ_API_KEY` in `.env`);
+CJ's website is bot-protected, so nothing is scraped.
+
+```
+npm run fetch-cj -- lamp-            # verify every CJ row; changes nothing
+npm run fetch-cj -- lamp- --apply    # import, then:
+npm run db:seed
+```
+
+- `data/product-sourcing.tsv`: the CJ product URL (`…-p-<pid>.html`) and, in
+  `option`, the exact variant name as CJ shows it (colour, size, US plug).
+- The import checks each listing is on sale, finds that variant, and reads its
+  price, packed size, stock and the cheapest US shipping. Rows that fail (gone,
+  off sale, variant missing, no US shipping, two products on one variant) are
+  listed and left unbuyable.
+- `data/cj-variants.tsv` (written): variant id, costs, stock, package. The seed
+  makes these orderable supplier listings; fulfilment orders by variant id.
+- `frontend/services/lamp-offers.ts` (written): retail price at the 2× floor
+  on item + shipping, buyable or not, delivery estimate, package size, photo.
+- `data/cj-photos.tsv`: the chosen photo per product, from that product's own
+  CJ listing, with an optional crop (`x0,y0,x1,y1` fractions) to drop spec
+  text. Saved as `frontend/public/images/products/<slug>-cj.jpg`.
+
+With `CJ_API_KEY` set, approving a fulfilment re-checks CJ's live stock and
+price and creates the CJ order unpaid (pay it in CJ: My CJ > Orders); tracking
+comes back from CJ.
+
 ## Not built yet
 
-- Admin/ingestion endpoints (`POST /admin/products`, supplier URL import)
+- Admin/ingestion endpoints (`POST /admin/products`, supplier URL import from the admin UI)
 - Supplier selection, availability sync jobs, margin alerts
 - Cart, checkout, orders, payments (Atharv's side)
 

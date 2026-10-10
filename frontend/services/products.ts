@@ -1,7 +1,7 @@
 import "server-only";
 import type { Product, ProductCategory } from "@shared/types";
 import { categoryLabels } from "@/utils/categories";
-import { products, styles } from "./mock-data";
+import { departments, products, styles } from "./mock-data";
 import { scenes } from "./scenes";
 
 // Server-only: data access stays on the server, so nothing here (or a future
@@ -67,4 +67,29 @@ export async function getRoomCounts(): Promise<Record<string, number>> {
     for (const id of new Set(scene.productIds)) counts[id] = (counts[id] ?? 0) + 1;
   }
   return counts;
+}
+
+/** Catalogue departments (only Lamps today), each a set of collections. */
+export async function getDepartments() {
+  return departments.map(({ slug, name, image }) => ({ slug, name, image }));
+}
+
+export async function getDepartment(slug: string) {
+  return departments.find((d) => d.slug === slug) ?? null;
+}
+
+export async function getCollection(departmentSlug: string, collectionSlug: string) {
+  const dept = departments.find((d) => d.slug === departmentSlug);
+  const collection = dept?.collections.find((c) => c.slug === collectionSlug);
+  if (!dept || !collection) return null;
+  return { department: dept, collection, products: await getProductsByIds(collection.productIds) };
+}
+
+/** Where a product sits in the catalogue, for "back to collection" links. */
+export async function getProductHome(productId: string) {
+  for (const dept of departments) {
+    const collection = dept.collections.find((c) => c.productIds.includes(productId));
+    if (collection) return { department: dept.slug, collection: collection.slug, name: collection.name };
+  }
+  return null;
 }

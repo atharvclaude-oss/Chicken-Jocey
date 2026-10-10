@@ -58,6 +58,7 @@ enum RoomUse {
 enum SupplierPlatform {
   ALIEXPRESS
   ALIBABA
+  CJDROPSHIPPING
   DISTRIBUTOR
   OTHER
 }
