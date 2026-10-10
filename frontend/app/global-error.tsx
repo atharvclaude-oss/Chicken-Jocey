@@ -7,7 +7,7 @@ export default function GlobalError({ error, retry }: { error: Error & { digest?
   return (
     <html lang="en">
       <body>
-        <title>Something went wrong | roomcommerce</title>
+        <title>Something broke | Room8</title>
         <style>{`
           :root { color-scheme: light dark; --bg: #f3f4f5; --fg: #131416; --muted: #5b5e66; --accent: #c2410c; }
           @media (prefers-color-scheme: dark) { :root { --bg: #0d0e10; --fg: #ecedee; --muted: #9c9fa6; --accent: #ec7a4b; } }
@@ -24,9 +24,9 @@ export default function GlobalError({ error, retry }: { error: Error & { digest?
           a { border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent); color: var(--fg); }
         `}</style>
         <main>
-          <p className="code">Error</p>
-          <h1>Something went wrong.</h1>
-          <p>The site hit a problem loading. Try again, or head back to the rooms. Your cart is saved.</p>
+          <p className="code">Something broke</p>
+          <h1>The lights went out in this room.</h1>
+          <p>The site hit a snag while loading. Try again, or head back to the rooms. Everything in your cart is still saved.</p>
           {error.digest && <p style={{ fontFamily: "ui-monospace, monospace", fontSize: 12 }}>Reference: {error.digest}</p>}
           <div className="row">
             <button type="button" onClick={() => retry()}>Try again</button>
