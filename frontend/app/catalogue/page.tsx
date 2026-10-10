@@ -4,15 +4,14 @@ import { getDepartments } from "@/services/products";
 
 export const metadata: Metadata = {
   title: "Catalogue",
-  description: "Shop by department: lamps for every room and mood.",
+  description: "Shop by department: lighting, seating, tables, storage, decor, textiles, bedroom and technology.",
 };
 
-// Lamps is the only department today; the rest of the grid holds space for what's coming.
-const GRID_SLOTS = 6;
 
 export default async function CataloguePage() {
   const departments = await getDepartments();
-  const fillers = Math.max(GRID_SLOTS - departments.length, 0);
+  // Two boxes per row: an empty filler keeps the last row even.
+  const fillers = departments.length % 2;
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 pb-24 pt-12 md:px-8 md:pt-16">

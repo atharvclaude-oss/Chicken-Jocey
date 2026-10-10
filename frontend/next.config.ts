@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/rooms", destination: "/", permanent: false },
       { source: "/rooms/:path*", destination: "/", permanent: false },
+      // Lamps became Lighting.
+      { source: "/catalogue/lamps", destination: "/catalogue/lighting", permanent: true },
+      { source: "/catalogue/lamps/:collection", destination: "/catalogue/lighting/:collection", permanent: true },
     ];
   },
 };

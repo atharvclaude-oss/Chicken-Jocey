@@ -266,8 +266,8 @@ export interface CatalogueCollection {
 /** Catalogue departments. Lamps is the only one for now; its collections group by atmosphere. */
 export const departments: { slug: string; name: string; image: string; collections: CatalogueCollection[] }[] = [
   {
-    slug: "lamps",
-    name: "Lamps",
+    slug: "lighting",
+    name: "Lighting",
     image: "/images/catalogue/lamps.jpg",
     collections: [
       {
@@ -342,4 +342,17 @@ export const departments: { slug: string; name: string; image: string; collectio
       },
     ],
   },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "seating", name: "Seating", image: "/images/catalogue/seating-e3042d31.jpg", collections: [] },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "tables", name: "Tables", image: "/images/catalogue/tables-34411c48.jpg", collections: [] },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "storage", name: "Storage", image: "/images/catalogue/storage-5fe9d152.jpg", collections: [] },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "decor-accents", name: "Decor & Accents", image: "/images/catalogue/decor-accents-2ac89745.jpg", collections: [] },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "textiles", name: "Textiles", image: "/images/catalogue/textiles-ee4e97c8.jpg", collections: [] },
+  // No products yet: the box links to an "arriving soon" page.
+  { slug: "beds-bedroom", name: "Beds & Bedroom", image: "/images/catalogue/beds-bedroom-ce65ab47.jpg", collections: [] },
+  { slug: "technology", name: "Technology", image: "/images/catalogue/technology-fb6698dd.jpg", collections: [] },
 ];
