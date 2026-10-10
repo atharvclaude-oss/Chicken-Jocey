@@ -20,7 +20,7 @@ EYE_HEIGHT = 1.4  # meters: typical phone height while filming
 
 def read_cameras(images_bin: Path):
     """Camera centers and world-space up vectors from COLMAP images.bin."""
-    centers, ups, fwds = [], [], []
+    centers, ups, fwds, rights = [], [], [], []
     with open(images_bin, "rb") as f:
         (n,) = struct.unpack("<Q", f.read(8))
         for _ in range(n):
@@ -33,7 +33,23 @@ def read_cameras(images_bin: Path):
             centers.append(-R.T @ np.array([tx, ty, tz]))
             ups.append(R.T @ np.array([0.0, -1.0, 0.0]))  # COLMAP camera y points down
             fwds.append(R.T @ np.array([0.0, 0.0, 1.0]))
+            rights.append(R.T @ np.array([1.0, 0.0, 0.0]))
+    read_cameras.rights = np.array(rights)  # see world_up()
     return np.array(centers), np.array(ups), np.array(fwds)
+
+
+def world_up(ups: np.ndarray, rights: np.ndarray) -> np.ndarray:
+    """World up direction from the camera path.
+
+    People tilt the phone up/down a lot while filming but rarely roll it, so
+    the camera's left-right axis stays level. Up is therefore the direction
+    perpendicular to all the right vectors (smallest eigenvector), signed to
+    agree with the cameras' up. Averaging the camera up vectors instead is
+    biased forward whenever the phone points down at the room.
+    """
+    w, v = np.linalg.eigh(rights.T @ rights)
+    up = v[:, 0]
+    return up if up @ ups.mean(0) > 0 else -up
 
 
 def quat_to_rot(w, x, y, z):
@@ -86,7 +102,7 @@ def main():
     centers, ups, fwds = read_cameras(work / "dataset" / "sparse" / "0" / "images.bin")
     pts = read_ply_positions(work / "room.ply")
 
-    up = ups.mean(axis=0)
+    up = world_up(ups, read_cameras.rights)
     R = rotation_to(up, np.array([0.0, 1.0, 0.0]))
     # Also turn the room so the average viewing direction faces -Z (three.js "forward").
     f = (R @ fwds.mean(axis=0))

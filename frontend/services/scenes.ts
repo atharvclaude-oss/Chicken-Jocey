@@ -76,16 +76,28 @@ export const scenes: RoomScene[] = [
     ],
   },
   {
-    // Built from a single customer photo: see 3d-engine/rooms/zeke-bedroom-01.json
+    // Measured from a phone video (COLMAP + SpatialLM): see 3d-engine/rooms/zeke-bedroom-01.json
     id: "zeke-bedroom-01",
     name: "Zeke's Bedroom",
-    style: "From your photo",
-    model: "/models/zeke-bedroom-01.glb",
+    style: "From your video",
+    model: "/models/zeke-bedroom-01.glb?v=measured-2", // bump when the .glb changes so browsers refetch
     background: "/models/zeke-bedroom-01-view.jpg",
     backgroundRotation: 70,
-    size: { width: 4.3, depth: 4.9, height: 2.8 },
-    walkStart: { x: 0.8, y: 0.6, lookAt: { x: 2.4, y: 4.0 } },
+    size: { width: 3.4, depth: 4.1, height: 2.7 },
+    walkStart: { x: 2.05, y: 0.4, lookAt: { x: 2.6, y: 3.8 } },
     productIds: ["linen-throw-pillow", "tripod-table-lamp", "faux-potted-plant", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
+  },
+  {
+    // Measured from a phone video (COLMAP + SpatialLM): see 3d-engine/rooms/samir-room-01.json
+    id: "samir-room-01",
+    name: "Samir's Room",
+    style: "From your video",
+    model: "/models/samir-room-01.glb?v=measured-2", // bump when the .glb changes so browsers refetch
+    background: "/models/samir-room-01-view.jpg",
+    backgroundRotation: 70,
+    size: { width: 4.2, depth: 3.65, height: 2.55 },
+    walkStart: { x: 0.7, y: 0.5, lookAt: { x: 3.0, y: 3.0 } },
+    productIds: ["linen-throw-pillow", "tripod-table-lamp", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
   },
 ];
 

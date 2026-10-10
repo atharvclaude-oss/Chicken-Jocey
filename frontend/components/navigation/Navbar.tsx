@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bag } from "@phosphor-icons/react";
 import { useCart, lineCount } from "@/store/cart";
 import { useHydrated } from "@/hooks/useHydrated";
+import { Logo } from "@/components/brand/Logo";
 import { SITE_NAME } from "@/utils/site";
 
 const links = [
@@ -19,8 +20,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 md:px-8">
-        <Link href="/" className="text-[17px] font-semibold tracking-tight">
-          {SITE_NAME}
+        <Link href="/" aria-label={`${SITE_NAME} home`} className="-ml-1 rounded-full px-1 py-1">
+          <Logo />
         </Link>
 
         <div className="flex items-center gap-1">

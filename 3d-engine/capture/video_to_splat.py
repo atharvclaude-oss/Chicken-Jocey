@@ -53,9 +53,9 @@ def extract_frames(video: Path, work: Path, target: int) -> Path:
     for d in (raw, images):
         shutil.rmtree(d, ignore_errors=True)
         d.mkdir(parents=True)
-    # Oversample 3x, then keep the sharpest frame from each group of 3.
+    # Long side capped at 1600 px, never upscaled. Oversample 3x, then keep the sharpest frame from each group of 3.
     fps = max(1.0, 3 * target / duration(video))
-    run(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={fps:.3f},scale='if(gt(iw,ih),1600,-2)':'if(gt(iw,ih),-2,1600)'",
+    run(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={fps:.3f},scale='if(gt(iw,ih),min(iw,1600),-2)':'if(gt(iw,ih),-2,min(ih,1600))'",
          "-qscale:v", "2", raw / "f_%05d.jpg"])
     frames = sorted(raw.glob("*.jpg"))
     kept = 0
@@ -105,6 +105,7 @@ def main():
     ap.add_argument("video", type=Path)
     ap.add_argument("--frames", type=int, default=220)
     ap.add_argument("--steps", type=int, default=30000)
+    ap.add_argument("--no-train", action="store_true", help="stop after COLMAP (layout pipeline doesn't need the splat)")
     ap.add_argument("--skip-frames", action="store_true", help="reuse previously extracted frames")
     args = ap.parse_args()
 
@@ -113,6 +114,9 @@ def main():
     work.mkdir(parents=True, exist_ok=True)
     images = work / "images" if args.skip_frames else extract_frames(args.video, work, args.frames)
     dataset = colmap(work, images)
+    if args.no_train:
+        print(f"\nDONE {dataset}")
+        return
     train(dataset, work, args.steps)
     print(f"\nDONE {work / 'room.ply'}")
 

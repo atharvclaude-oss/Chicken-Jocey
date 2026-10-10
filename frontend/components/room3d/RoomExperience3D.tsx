@@ -8,6 +8,7 @@ import type { RoomScene } from "@/services/scenes";
 import { ProductDrawer } from "@/components/room/ProductDrawer";
 import { useRoomStore } from "@/store/room";
 import { track } from "@/utils/analytics";
+import { Room8Loader } from "@/components/brand/Room8Loader";
 import { RoomCanvas, type ViewMode } from "./RoomCanvas";
 
 function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
@@ -15,16 +16,7 @@ function LoadingOverlay({ splatProgress }: { splatProgress?: number }) {
   const active = splatProgress !== undefined ? splatProgress < 1 : loader.active;
   const progress = splatProgress !== undefined ? splatProgress * 100 : loader.progress;
   if (!active && progress >= 100) return null;
-  return (
-    <div className="pointer-events-none absolute inset-0 grid place-items-center bg-stage">
-      <div className="w-56 text-center">
-        <p className="text-sm text-white/70">Loading room...</p>
-        <div className="mt-3 h-[3px] overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-white/70 transition-[width] duration-300" style={{ width: `${progress}%` }} />
-        </div>
-      </div>
-    </div>
-  );
+  return <Room8Loader progress={progress} delayMs={150} />;
 }
 
 export function RoomExperience3D({
@@ -67,8 +59,8 @@ export function RoomExperience3D({
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-4 md:p-6">
         <div className="text-white">
-          <p className="text-sm text-white/60">{room.style}</p>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{room.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] md:text-3xl">{room.name}</h1>
+          <p className="mt-0.5 text-sm text-white/60">{room.style}</p>
         </div>
       </div>
 

@@ -3,12 +3,12 @@
   "name": "Zeke's Bedroom",
   "style": "warm-minimal",
   "units": "meters",
-  "_source": "Layout from one photo, restyled clean (Graphite Lounge quality bar). Enlarged ~15% so it doesn't feel cramped.",
+  "_source": "Positions measured: video -> COLMAP dense cloud -> SpatialLM (layout_llama_s42.txt), checked against video frames. Back wall at the closet line; the wardrobe is built into the niche behind it. Look restyled clean (Graphite Lounge bar). Enlarged ~17% (exact measured size 2.9 x 3.5 kept in captures-out/zeke-room/spec_measured_exact.json); furniture at real size, same walls.",
   "_coords": "x = width (left to right), y = depth (front to back), z = up. rot: 0 faces the front (-y), 90 faces +x, -90 faces -x.",
   "room": {
-    "width": 4.3,
-    "depth": 4.9,
-    "height": 2.8
+    "width": 3.4,
+    "depth": 4.1,
+    "height": 2.7
   },
   "render": {
     "exposure": 0.15
@@ -39,28 +39,38 @@
       "height": 0.08
     },
     "accent_wall": {
-      "wall": "back",
+      "wall": "right",
       "color": "#b7ad9f"
+    },
+    "door": {
+      "color": "#4b3c31"
     }
   },
   "openings": [
     {
       "type": "window",
-      "wall": "right",
-      "center": 2.15,
-      "width": 2.4,
-      "sill": 0.95,
-      "height": 1.35,
-      "blind": 0.55
+      "wall": "front",
+      "center": 1.64,
+      "width": 2.0,
+      "sill": 0.8,
+      "height": 1.4,
+      "blind": 0.85
     },
     {
       "type": "window",
-      "wall": "left",
-      "center": 2.3,
-      "width": 0.95,
-      "sill": 0.8,
+      "wall": "right",
+      "center": 3.8,
+      "width": 0.45,
+      "sill": 0.75,
       "height": 1.5,
-      "blind": 0.6
+      "blind": 0.25
+    },
+    {
+      "type": "door",
+      "wall": "back",
+      "center": 0.7,
+      "width": 0.8,
+      "height": 2.03
     }
   ],
   "environment": {
@@ -77,13 +87,13 @@
     {
       "asset": "proc:bed",
       "pos": [
-        1.75,
-        3.84
+        2.34,
+        1.99
       ],
-      "rot": 0,
+      "rot": -90,
       "size": [
-        1.37,
-        1.91
+        1.4,
+        1.9
       ],
       "sheet": "#a39a90",
       "duvet": "#dcd5c9"
@@ -91,11 +101,11 @@
     {
       "asset": "proc:pillows",
       "pos": [
-        1.75,
-        4.62,
+        3.1,
+        1.99,
         0.6
       ],
-      "rot": 0,
+      "rot": -90,
       "color": "#b3a99f",
       "accent": "#5f5b56",
       "productId": "linen-throw-pillow"
@@ -103,27 +113,27 @@
     {
       "asset": "proc:throw_blanket",
       "pos": [
-        1.75,
-        3.08,
+        1.62,
+        1.99,
         0.665
       ],
-      "rot": 0,
-      "width": 1.48,
+      "rot": -90,
+      "width": 1.5,
       "color": "#77736e"
     },
     {
       "asset": "polyhaven:side_table_01",
       "pos": [
-        0.6,
-        4.58
+        3.15,
+        3.22
       ],
-      "rot": 0
+      "rot": -90
     },
     {
       "asset": "proc:tripod_lamp",
       "pos": [
-        0.6,
-        4.6,
+        3.15,
+        3.24,
         0.55
       ],
       "rot": 0,
@@ -131,24 +141,15 @@
       "productId": "tripod-table-lamp"
     },
     {
-      "asset": "polyhaven:potted_plant_01",
-      "pos": [
-        3.85,
-        4.5
-      ],
-      "rot": 140,
-      "productId": "faux-potted-plant"
-    },
-    {
       "asset": "proc:rug",
       "pos": [
-        1.35,
-        1.45
+        1.7,
+        2.28
       ],
       "rot": 0,
       "size": [
-        1.9,
-        2.5
+        1.7,
+        2.6
       ],
       "texture": "curly_teddy_natural",
       "tile": 0.35,
@@ -161,10 +162,72 @@
       "productId": "cream-shag-rug"
     },
     {
+      "asset": "proc:desk",
+      "pos": [
+        0.3,
+        0.88
+      ],
+      "rot": 90,
+      "size": [
+        1.2,
+        0.6
+      ]
+    },
+    {
+      "asset": "proc:monitor",
+      "pos": [
+        0.13,
+        0.57,
+        0.742
+      ],
+      "rot": 100
+    },
+    {
+      "asset": "proc:monitor",
+      "pos": [
+        0.13,
+        1.19,
+        0.742
+      ],
+      "rot": 80
+    },
+    {
+      "asset": "proc:keyboard",
+      "pos": [
+        0.42,
+        0.85,
+        0.742
+      ],
+      "rot": 90
+    },
+    {
+      "asset": "proc:office_chair",
+      "pos": [
+        1.0,
+        0.68
+      ],
+      "rot": -100,
+      "productId": "gaming-chair"
+    },
+    {
+      "asset": "proc:cabinet",
+      "pos": [
+        2.58,
+        4.37
+      ],
+      "rot": 0,
+      "size": [
+        1.6,
+        0.56,
+        2.05
+      ],
+      "_label": "built-in wardrobe (niche)"
+    },
+    {
       "asset": "proc:framed_print",
       "pos": [
         0.02,
-        0.95,
+        2.75,
         1.5
       ],
       "rot": 90,
@@ -176,68 +239,19 @@
       "productId": "oak-gallery-frame"
     },
     {
-      "asset": "proc:desk",
+      "asset": "polyhaven:potted_plant_01",
       "pos": [
-        3.94,
-        2.0
+        3.1,
+        0.34
       ],
-      "rot": -90,
-      "size": [
-        1.5,
-        0.7
-      ]
-    },
-    {
-      "asset": "proc:monitor",
-      "pos": [
-        4.12,
-        2.0,
-        0.755
-      ],
-      "rot": -90
-    },
-    {
-      "asset": "proc:keyboard",
-      "pos": [
-        3.82,
-        1.95,
-        0.755
-      ],
-      "rot": -90
-    },
-    {
-      "asset": "polyhaven:potted_plant_04",
-      "pos": [
-        4.05,
-        2.62,
-        0.755
-      ],
-      "rot": 20
-    },
-    {
-      "asset": "polyhaven:ceramic_vase_03",
-      "pos": [
-        4.08,
-        1.42,
-        0.755
-      ],
-      "rot": 0,
-      "scale": 0.7
-    },
-    {
-      "asset": "proc:office_chair",
-      "pos": [
-        3.2,
-        2.05
-      ],
-      "rot": 95,
-      "productId": "gaming-chair"
+      "rot": 140,
+      "productId": "faux-potted-plant"
     },
     {
       "asset": "proc:ceiling_light",
       "pos": [
-        2.15,
-        3.1
+        1.7,
+        1.35
       ],
       "light": {
         "watts": 30,
@@ -247,8 +261,8 @@
     {
       "asset": "proc:ceiling_light",
       "pos": [
-        2.15,
-        1.35
+        1.7,
+        2.95
       ],
       "light": {
         "watts": 30,
@@ -259,45 +273,47 @@
   "cameras": {
     "hero": {
       "pos": [
-        0.45,
-        0.3,
-        1.6
+        2.05,
+        0.2,
+        1.65
       ],
       "target": [
-        2.7,
-        3.9,
+        2.35,
+        3.4,
         0.7
       ],
       "lens": 18
     },
     "corner": {
       "pos": [
-        3.95,
-        4.55,
+        3.0,
+        3.8,
         1.6
       ],
       "target": [
-        1.0,
-        0.9,
-        0.6
+        0.45,
+        0.7,
+        0.7
       ],
       "lens": 18
     },
     "birdseye": {
       "pos": [
-        2.15,
-        -2.9,
-        6.6
+        1.7,
+        -2.4,
+        5.4
       ],
       "target": [
-        2.15,
-        2.45,
+        1.7,
+        2.05,
         0.2
       ],
       "lens": 28,
       "hide": [
         "ceiling",
-        "wall_front"
+        "wall_front",
+        "window_front",
+        "baseboard_front"
       ]
     }
   }

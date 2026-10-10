@@ -41,6 +41,27 @@
   }
 }
 
+/* Pure-black sections (home stage, catalogue): same token names, so every
+   component inside adapts without per-component dark variants. */
+.theme-dark {
+  --bg: #000000;
+  --surface: #0b0b0c;
+  --surface-sunken: #141416;
+  --fg: #f2f2f3;
+  --muted: #a3a5ab;
+  --line: #242529;
+  --accent: #ec7a4b;
+  --accent-fg: #0d0e10;
+  --stage: #000000;
+  --scrim: rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+  background: var(--bg);
+  color: var(--fg);
+}
+body:has(.theme-dark) {
+  background: #000;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -120,8 +141,49 @@ body {
   animation: shimmer 1.2s linear infinite;
 }
 
+/*
+  Room8 loader: black panel, the wordmark rises from below a mask line.
+  The intro curtain then lifts the whole panel up and off the screen.
+*/
+@keyframes room8-rise {
+  from { transform: translateY(105%); }
+  to { transform: translateY(0); }
+}
+@keyframes room8-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes room8-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+.room8-loader {
+  animation: room8-appear 240ms ease-out both;
+}
+.room8-loader[data-delay] {
+  animation-delay: var(--room8-delay, 0ms);
+}
+.room8-word {
+  animation: room8-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+.room8-sweep {
+  animation: room8-sweep 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.room8-curtain {
+  transition: transform 950ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+.room8-curtain[data-leaving] {
+  transform: translateY(-100%);
+}
+.room8-curtain[data-leaving] .room8-word-wrap {
+  transition: transform 950ms cubic-bezier(0.76, 0, 0.24, 1), opacity 500ms ease-out;
+  transform: translateY(-40%);
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .skeleton, .loading-bar { animation: none; }
+  .skeleton, .loading-bar, .room8-sweep { animation: none; }
+  .room8-word { animation-name: room8-appear; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;

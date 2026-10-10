@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
 import { SITE_NAME } from "@/utils/site";
 
 export function Footer() {
@@ -6,9 +7,9 @@ export function Footer() {
     <footer className="mt-auto border-t border-line">
       <div className="mx-auto grid max-w-[1400px] gap-10 px-4 py-14 md:grid-cols-[2fr_1fr] md:px-8">
         <div className="max-w-sm">
-          <p className="text-[17px] font-semibold tracking-tight">{SITE_NAME}</p>
+          <Logo />
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Complete rooms you can explore piece by piece, then buy all at once.
+            Real rooms you can walk through, and every piece in them to shop.
           </p>
         </div>
         <div>

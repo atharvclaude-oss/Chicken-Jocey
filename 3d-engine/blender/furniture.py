@@ -89,7 +89,7 @@ def bed(spec, idx, h):
     wrinkled linen bedding. Headboard at +y, foot at -y."""
     mw, ml = spec.get("size", [1.37, 1.91])  # mattress
     fw, fl = mw + 0.1, ml + 0.1
-    white = lacquer(h, "bed_white", "#ecebe7")
+    white = lacquer(h, f"bed_white_{idx}", spec.get("frame", "#ecebe7"))
     wood = oak(h)
     sheet = linen(h, "bed_sheet", spec.get("sheet", "#a59b91"))
     duvet_m = linen(h, "bed_duvet", spec.get("duvet", "#d9d2c6"))
@@ -97,7 +97,8 @@ def bed(spec, idx, h):
     parts = []
     base_h = 0.36
     parts.append(box(f"bed_{idx}_base", (fw, fl, base_h - 0.03), (0, 0, 0.03 + (base_h - 0.03) / 2), white, 0.008))
-    n = int((fl - 0.1) / 0.042)
+    upholstered = spec.get("headboard") == "upholstered"
+    n = 0 if upholstered else int((fl - 0.1) / 0.042)
     for sx in (-1, 1):  # oak slat drawer fronts on both long sides
         for i in range(n):
             y = -fl / 2 + 0.065 + i * 0.042
@@ -113,9 +114,27 @@ def bed(spec, idx, h):
     for sx in (-1, 1):
         flap = box(f"bed_{idx}_drape_{sx}", (0.035, dl, 0.27), (sx * (mw / 2 + 0.07), dy, base_h + 0.135), duvet_m, 0.015)
         parts.append(soft(h, flap, 1, 0.012))
-    # Headboard: white frame around vertical oak slats.
     hb_w, hb_h, hb_z0 = fw + 0.06, 1.0, 0.25
     hy = fl / 2 + 0.03
+    if upholstered:
+        # Padded fabric headboard with vertical channels; optional padded side
+        # panel along one long side (daybed style), spec["side_panel"] = +1/-1 (local x).
+        fab = h.textured(f"bed_fabric_{idx}", "rough_linen", 0.3, color=spec.get("frame", "#6e6862"), detail=True, normal=1.6)
+        parts[0].data.materials.clear()
+        parts[0].data.materials.append(fab)
+        ch = max(3, round(hb_w / 0.18))
+        for i in range(ch):
+            x = -hb_w / 2 + hb_w / ch * (i + 0.5)
+            parts.append(soft(h, box(f"bed_{idx}_hb_channel_{i}", (hb_w / ch - 0.006, 0.08, hb_h * 0.9),
+                                     (x, hy, hb_z0 + hb_h * 0.45 + 0.02), fab, 0.035), 2, 0.006))
+        if spec.get("side_panel"):
+            sx = spec["side_panel"]
+            for i in range(max(3, round(fl / 0.25))):
+                y = -fl / 2 + fl / max(3, round(fl / 0.25)) * (i + 0.5)
+                parts.append(soft(h, box(f"bed_{idx}_side_channel_{i}", (0.08, fl / max(3, round(fl / 0.25)) - 0.006, 0.55),
+                                         (sx * (fw / 2 + 0.04), y, base_h + 0.25), fab, 0.035), 2, 0.006))
+        return h.group(f"bed_{idx}", parts, spec)
+    # Headboard: white frame around vertical oak slats.
     t = 0.045
     parts += [
         box(f"bed_{idx}_hb_top", (hb_w, 0.05, t), (0, hy, hb_z0 + hb_h - t / 2), white, 0.006),
@@ -158,8 +177,8 @@ def throw_blanket(spec, idx, h):
 def desk(spec, idx, h):
     """White sit-stand desk; long side along x, user sits at -y."""
     w, d = spec.get("size", [1.4, 0.7])
-    white = lacquer(h, "desk_white", "#efeeea")
-    frame = h.principled("desk_frame", h.hex_rgb("#e6e5e1"), rough=0.3, metal=0.4)
+    white = lacquer(h, f"desk_top_{idx}", spec.get("color", "#efeeea"))
+    frame = h.principled(f"desk_frame_{idx}", h.hex_rgb(spec.get("frame", "#e6e5e1")), rough=0.3, metal=0.4)
     top = 0.74
     box = h.box
     parts = [box(f"desk_{idx}_top", (w, d, 0.028), (0, 0, top - 0.014), white, 0.005)]
@@ -210,8 +229,8 @@ def keyboard(spec, idx, h):
 def office_chair(spec, idx, h):
     """Gaming-style office chair: five-star base, leather seat, tall back with
     white side bolsters; faces -y."""
-    black = leather(h, "chair_black", "#1a1b1d")
-    white = leather(h, "chair_white", "#e6e5e1")
+    black = leather(h, f"chair_black_{idx}", spec.get("color", "#1a1b1d"))
+    white = leather(h, f"chair_white_{idx}", spec.get("accent", "#e6e5e1"))
     metal = h.principled("chair_metal", h.hex_rgb("#a7a9ad"), rough=0.2, metal=1.0)
     box = h.box
     parts = []
@@ -303,7 +322,73 @@ def ceiling_light(spec, idx, h):
     return h.group(f"ceiling_light_{idx}", [ring, lens, light], spec)
 
 
+def cabinet(spec, idx, h):
+    """Sized storage piece (wardrobe, dresser, shelf unit) for measured layouts.
+
+    spec["size"] = [width, depth, height] in meters; faces -y. Tall pieces get
+    two doors, low ones get drawer fronts, so stand-ins still read as furniture.
+    """
+    w, d, ht = spec.get("size", [1.0, 0.5, 0.8])
+    body = lacquer(h, f"cabinet_body_{idx}", spec.get("color", "#ecebe7"))
+    front = oak(h) if spec.get("oak_front", True) else body
+    knob = h.principled("cabinet_knob", h.hex_rgb("#2a2a2c"), rough=0.3, metal=0.9)
+    box = h.box
+    parts = [box(f"cabinet_{idx}_body", (w, d, ht - 0.06), (0, 0, 0.06 + (ht - 0.06) / 2), body, 0.006)]
+    parts.append(box(f"cabinet_{idx}_plinth", (w - 0.04, d - 0.06, 0.06), (0, 0.02, 0.03), body))
+    gap = 0.006
+    if ht > 1.3:  # wardrobe: two tall doors
+        for sx in (-1, 1):
+            parts.append(box(f"cabinet_{idx}_door_{sx}", (w / 2 - gap * 1.5, 0.02, ht - 0.12),
+                             (sx * w / 4, -d / 2 - 0.009, 0.06 + (ht - 0.06) / 2), front, 0.003))
+            parts.append(box(f"cabinet_{idx}_knob_{sx}", (0.02, 0.03, 0.18), (sx * 0.05, -d / 2 - 0.03, ht * 0.55), knob, 0.004))
+    else:  # dresser / sideboard: stacked drawers
+        rows = max(2, min(5, round((ht - 0.06) / 0.22)))
+        dh = (ht - 0.06) / rows
+        for r in range(rows):
+            z = 0.06 + dh * (r + 0.5)
+            parts.append(box(f"cabinet_{idx}_drawer_{r}", (w - 2 * gap, 0.02, dh - gap), (0, -d / 2 - 0.009, z), front, 0.003))
+            parts.append(box(f"cabinet_{idx}_pull_{r}", (min(0.2, w * 0.3), 0.025, 0.018), (0, -d / 2 - 0.03, z), knob, 0.004))
+    return h.group(f"cabinet_{idx}", parts, spec)
+
+
+def bookshelf(spec, idx, h):
+    """Open shelf unit (no back doors) with a few books and objects; faces -y.
+
+    spec["size"] = [width, depth, height]; spec["shelves"] = shelf count.
+    """
+    import random
+    w, d, ht = spec.get("size", [0.8, 0.3, 1.8])
+    n = spec.get("shelves", 5)
+    frame = lacquer(h, f"bookshelf_frame_{idx}", spec.get("color", "#1d1e20"))
+    box = h.box
+    t = 0.025
+    parts = [
+        box(f"bookshelf_{idx}_side_l", (t, d, ht), (-w / 2 + t / 2, 0, ht / 2), frame, 0.003),
+        box(f"bookshelf_{idx}_side_r", (t, d, ht), (w / 2 - t / 2, 0, ht / 2), frame, 0.003),
+        box(f"bookshelf_{idx}_back", (w - 2 * t, 0.008, ht - 0.04), (0, d / 2 - 0.004, ht / 2), frame),
+    ]
+    gap = (ht - 0.05) / n
+    covers = [h.principled(f"book_{c}", h.hex_rgb(c), rough=0.6) for c in
+              ("#8a3b2e", "#2f4a63", "#d8d2c4", "#4d5b45", "#b08a4f", "#2a2a2c", "#9a9fa6")]
+    rng = random.Random(idx)
+    for i in range(n + 1):
+        z = 0.04 + i * gap
+        parts.append(box(f"bookshelf_{idx}_shelf_{i}", (w - 2 * t, d - 0.01, t), (0, -0.005, z), frame, 0.002))
+        if i == n:
+            break
+        # Books on most shelves: a run of uprights from one side, leaving air.
+        x = -w / 2 + t + 0.02
+        end = x + (w - 2 * t) * rng.uniform(0.45, 0.8)
+        while x < end:
+            bw, bh = rng.uniform(0.022, 0.045), min(gap - 0.05, rng.uniform(0.18, 0.27))
+            parts.append(box(f"bookshelf_{idx}_book_{i}_{len(parts)}", (bw, d * 0.75, bh),
+                             (x + bw / 2, -0.01, z + t / 2 + bh / 2), rng.choice(covers), 0.002))
+            x += bw + 0.002
+    return h.group(f"bookshelf_{idx}", parts, spec)
+
+
 BUILDERS = {
+    "bookshelf": bookshelf,
     "bed": bed,
     "pillows": pillows,
     "throw_blanket": throw_blanket,
@@ -313,4 +398,5 @@ BUILDERS = {
     "office_chair": office_chair,
     "tripod_lamp": tripod_lamp,
     "ceiling_light": ceiling_light,
+    "cabinet": cabinet,
 }

@@ -64,9 +64,9 @@ function Room({
       mesh.material = new THREE.MeshBasicMaterial({ map, toneMapped: false, side: thin ? THREE.DoubleSide : THREE.FrontSide });
       // Multi-material nodes import as a Group of meshes; the node name is on the group.
       const name =
-        [mesh.name, mesh.parent?.name ?? ""].find((n) => /^(wall_|baseboard_|window_|ceiling)/.test(n)) ?? mesh.name;
+        [mesh.name, mesh.parent?.name ?? ""].find((n) => /^(wall_|baseboard_|window_|door_|ceiling)/.test(n)) ?? mesh.name;
       for (const side of ["front", "back", "left", "right"]) {
-        if (name.startsWith(`wall_${side}`) || name.startsWith(`baseboard_${side}`) || name.startsWith(`window_${side}`) ||
+        if (name.startsWith(`wall_${side}`) || name.startsWith(`baseboard_${side}`) || name.startsWith(`window_${side}`) || name.startsWith(`door_${side}`) ||
           // rooms exported before windows were named per side
           (side === "right" && /^window_(frame|mullion|sill)/.test(name))) {
           walls[side].push(mesh);

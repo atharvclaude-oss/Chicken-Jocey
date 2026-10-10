@@ -191,49 +191,40 @@ def build_shell(spec):
     box("ceiling", (W + 2 * WALL_T, D + 2 * WALL_T, 0.05), (W / 2, D / 2, H + 0.025), ceil_m)
 
     t = WALL_T
-    walls = {
-        "back": ((W + 2 * t, t, H), (W / 2, D + t / 2, H / 2)),
-        "front": ((W + 2 * t, t, H), (W / 2, -t / 2, H / 2)),
-        "left": ((t, D, H), (-t / 2, D / 2, H / 2)),
-        "right": ((t, D, H), (W + t / 2, D / 2, H / 2)),
-    }
-    windows = {o["wall"]: o for o in spec.get("openings", []) if o["type"] == "window"}
-
-    for side, (size, loc) in walls.items():
-        if side in windows and side in ("left", "right"):
-            w = windows[side]
-            y0, y1 = w["center"] - w["width"] / 2, w["center"] + w["width"] / 2
-            z0, z1 = w["sill"], w["sill"] + w["height"]
-            x = loc[0]
-            # Four pieces around the opening.
-            box(f"wall_{side}_a", (t, y0, H), (x, y0 / 2, H / 2), wall_m)
-            box(f"wall_{side}_b", (t, D - y1, H), (x, (y1 + D) / 2, H / 2), wall_m)
-            box(f"wall_{side}_c", (t, y1 - y0, z0), (x, (y0 + y1) / 2, z0 / 2), wall_m)
-            box(f"wall_{side}_d", (t, y1 - y0, H - z1), (x, (y0 + y1) / 2, (z1 + H) / 2), wall_m)
-            # Slim black steel frame; mullions roughly every 0.9 m.
-            fx = W + 0.03 if side == "right" else -0.03
-            f = 0.045
-            p = f"window_{side}"
-            box(f"{p}_frame_l", (0.06, f, z1 - z0), (fx, y0 + f / 2, (z0 + z1) / 2), frame_m)
-            box(f"{p}_frame_r", (0.06, f, z1 - z0), (fx, y1 - f / 2, (z0 + z1) / 2), frame_m)
-            box(f"{p}_frame_t", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z1 - f / 2), frame_m)
-            box(f"{p}_frame_b", (0.06, y1 - y0, f), (fx, (y0 + y1) / 2, z0 + f / 2), frame_m)
-            n = max(0, round((y1 - y0) / 0.9) - 1)
-            for i in range(1, n + 1):
-                yy = y0 + (y1 - y0) * i / (n + 1)
-                box(f"{p}_mullion_{i}", (0.05, 0.03, z1 - z0), (fx, yy, (z0 + z1) / 2), frame_m)
-            inward = -1 if side == "right" else 1
-            edge = W if side == "right" else 0.0
-            box(f"{p}_sill", (0.2, y1 - y0 + 0.1, 0.03), (edge + inward * 0.06, (y0 + y1) / 2, z0 - 0.015), base_m)
-            if w.get("blind"):
-                build_blind(p, edge + inward * 0.07, y0, y1, z0, z1, w["blind"], faces=inward)
-        else:
-            accent = mats.get("accent_wall")
-            m = wall_m
-            if accent and accent["wall"] == side:
-                m = textured("accent_wall", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=accent["color"],
+    accent = mats.get("accent_wall")
+    accent_m = None
+    if accent:
+        accent_m = (textured("accent_wall", mats["walls"]["texture"], mats["walls"].get("tile", 2), color=accent["color"],
                              detail=True, normal=mats["walls"].get("normal", 0.5))
-            box(f"wall_{side}", size, loc, m)
+                    if mats["walls"].get("texture") else principled("accent_wall", hex_rgb(accent["color"]), rough=0.9))
+    door_m = principled("door", hex_rgb(mats.get("door", {}).get("color", "#efeee9")), rough=0.4)
+    handle_m = principled("door_handle", hex_rgb("#2a2a2c"), rough=0.3, metal=0.9)
+
+    for side in ("back", "front", "left", "right"):
+        along_x = side in ("back", "front")
+        # Front/back walls run past the corners so the shell is closed.
+        u_lo, u_hi = (-t, W + t) if along_x else (0.0, D)
+        m = accent_m if accent and accent["wall"] == side else wall_m
+        ops = sorted((o for o in spec.get("openings", []) if o["wall"] == side), key=lambda o: o["center"])
+        u = u_lo
+        for i, o in enumerate(ops):
+            o0, o1 = o["center"] - o["width"] / 2, o["center"] + o["width"] / 2
+            z0 = 0.0 if o["type"] == "door" else o["sill"]
+            z1 = min(z0 + o["height"], H - 0.02)
+            if o0 > u:
+                wall_box(f"wall_{side}_{i}a", side, (u + o0) / 2, H / 2, o0 - u, H, t, -t / 2, m, W, D)
+            if z0 > 0:
+                wall_box(f"wall_{side}_{i}b", side, (o0 + o1) / 2, z0 / 2, o1 - o0, z0, t, -t / 2, m, W, D)
+            if z1 < H:
+                wall_box(f"wall_{side}_{i}c", side, (o0 + o1) / 2, (z1 + H) / 2, o1 - o0, H - z1, t, -t / 2, m, W, D)
+            if o["type"] == "window":
+                build_window(f"window_{side}_{i}", side, o0, o1, z0, z1, o, frame_m, base_m, W, D)
+            else:
+                build_door(f"door_{side}_{i}", side, o0, o1, z1, door_m, handle_m, W, D)
+            u = o1
+        if u < u_hi:
+            name = f"wall_{side}" if not ops else f"wall_{side}_end"
+            wall_box(name, side, (u + u_hi) / 2, H / 2, u_hi - u, H, t, -t / 2, m, W, D)
 
     # Baseboards.
     bh = mats["baseboard"]["height"]
@@ -243,7 +234,49 @@ def build_shell(spec):
     box("baseboard_right", (0.015, D, bh), (W - 0.0075, D / 2, bh / 2), base_m)
 
 
-def build_blind(prefix, x, y0, y1, z0, z1, coverage, faces=-1):
+def wall_frame(side, W, D):
+    """(inner-face coordinate, inward normal sign) for a wall."""
+    return {"left": (0.0, 1), "right": (W, -1), "front": (0.0, 1), "back": (D, -1)}[side]
+
+
+def wall_box(name, side, u, z, du, dz, depth, n, mat, W, D, bevel=0.0):
+    """Box placed relative to a wall: u along it, z up, n along the inward
+    normal measured from the wall's inner face (negative = inside the wall)."""
+    face, inward = wall_frame(side, W, D)
+    c = face + inward * n
+    if side in ("left", "right"):
+        return box(name, (depth, du, dz), (c, u, z), mat, bevel)
+    return box(name, (du, depth, dz), (u, c, z), mat, bevel)
+
+
+def build_window(p, side, u0, u1, z0, z1, o, frame_m, base_m, W, D):
+    """Slim black steel frame, mullions roughly every 0.9 m, sill, optional blind."""
+    f = 0.045
+    zc, du, dz = (z0 + z1) / 2, u1 - u0, z1 - z0
+    wall_box(f"{p}_frame_l", side, u0 + f / 2, zc, f, dz, 0.06, -0.03, frame_m, W, D)
+    wall_box(f"{p}_frame_r", side, u1 - f / 2, zc, f, dz, 0.06, -0.03, frame_m, W, D)
+    wall_box(f"{p}_frame_t", side, (u0 + u1) / 2, z1 - f / 2, du, f, 0.06, -0.03, frame_m, W, D)
+    wall_box(f"{p}_frame_b", side, (u0 + u1) / 2, z0 + f / 2, du, f, 0.06, -0.03, frame_m, W, D)
+    n = max(0, round(du / 0.9) - 1)
+    for i in range(1, n + 1):
+        wall_box(f"{p}_mullion_{i}", side, u0 + du * i / (n + 1), zc, 0.03, dz, 0.05, -0.03, frame_m, W, D)
+    wall_box(f"{p}_sill", side, (u0 + u1) / 2, z0 - 0.015, du + 0.1, 0.03, 0.2, 0.04, base_m, W, D)
+    if o.get("blind"):
+        build_blind(p, side, u0, u1, z0, z1, o["blind"], W, D)
+
+
+def build_door(p, side, u0, u1, z1, door_m, handle_m, W, D):
+    """Closed interior door: casing around the opening, slab, lever handle."""
+    du = u1 - u0
+    c = 0.06  # casing width
+    wall_box(f"{p}_casing_l", side, u0 - c / 2, z1 / 2, c, z1, 0.02, 0.01, door_m, W, D, 0.004)
+    wall_box(f"{p}_casing_r", side, u1 + c / 2, z1 / 2, c, z1, 0.02, 0.01, door_m, W, D, 0.004)
+    wall_box(f"{p}_casing_t", side, (u0 + u1) / 2, z1 + c / 2, du + 2 * c, c, 0.02, 0.01, door_m, W, D, 0.004)
+    wall_box(f"{p}_slab", side, (u0 + u1) / 2, z1 / 2, du - 0.01, z1 - 0.01, 0.04, -0.03, door_m, W, D, 0.003)
+    wall_box(f"{p}_handle", side, u1 - 0.08, 1.0, 0.12, 0.02, 0.05, 0.015, handle_m, W, D, 0.005)
+
+
+def build_blind(prefix, side, u0, u1, z0, z1, coverage, W, D):
     """Zebra roller blind: cassette at the top, striped fabric down to `coverage`."""
     cass = principled("blind_cassette", hex_rgb("#efede8"), rough=0.5)
     fabric = bpy.data.materials.new("blind_fabric")
@@ -253,7 +286,7 @@ def build_blind(prefix, x, y0, y1, z0, z1, coverage, faces=-1):
     coord = nt.nodes.new("ShaderNodeTexCoord")
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     nt.links.new(coord.outputs["Object"], sep.inputs["Vector"])
-    # Alternating sheer / solid bands, 7.5 cm each: z position -> stripes.
+    # Alternating sheer / solid bands, 7.5 cm each: height -> stripes.
     wave = nt.nodes.new("ShaderNodeMath")
     wave.operation = "PINGPONG"
     wave.inputs[1].default_value = 0.075
@@ -269,24 +302,29 @@ def build_blind(prefix, x, y0, y1, z0, z1, coverage, faces=-1):
     nt.links.new(band.outputs[0], mix.inputs["Factor"])
     nt.links.new(mix.outputs[2], b.inputs["Base Color"])
     b.inputs["Roughness"].default_value = 0.9
-    # Sheer bands let daylight through and glow a little, like the real fabric.
     alpha = nt.nodes.new("ShaderNodeMapRange")
     alpha.inputs["To Min"].default_value = 0.35
     alpha.inputs["To Max"].default_value = 1.0
     nt.links.new(band.outputs[0], alpha.inputs["Value"])
     nt.links.new(alpha.outputs["Result"], b.inputs["Alpha"])
 
-    width = y1 - y0 + 0.08
+    width = u1 - u0 + 0.08
     drop = (z1 - z0) * coverage
-    box(f"{prefix}_blind_cassette", (0.09, width, 0.09), (x, (y0 + y1) / 2, z1 + 0.04), cass, 0.01)
-    bpy.ops.mesh.primitive_plane_add(size=1, location=(x + 0.01, (y0 + y1) / 2, z1 - drop / 2),
-                                     rotation=(0, math.radians(90 * faces), 0))  # +Z normal -> faces (x) into the room
+    uc = (u0 + u1) / 2
+    wall_box(f"{prefix}_blind_cassette", side, uc, z1 + 0.04, width, 0.09, 0.09, 0.07, cass, W, D, 0.01)
+    face, inward = wall_frame(side, W, D)
+    c = face + inward * 0.08
+    if side in ("left", "right"):
+        loc, rot, scale = (c, uc, z1 - drop / 2), (0, math.radians(90 * inward), 0), (drop, width - 0.02, 1)
+    else:  # plane normal +Z rotated about X to face along +/-y (into the room)
+        loc, rot, scale = (uc, c, z1 - drop / 2), (math.radians(-90 * inward), 0, 0), (width - 0.02, drop, 1)
+    bpy.ops.mesh.primitive_plane_add(size=1, location=loc, rotation=rot)
     panel = bpy.context.active_object
     panel.name = f"{prefix}_blind"
-    panel.scale = (drop, width - 0.02, 1)
+    panel.scale = scale
     bpy.ops.object.transform_apply(scale=True)
     panel.data.materials.append(fabric)
-    box(f"{prefix}_blind_bar", (0.03, width - 0.02, 0.025), (x + 0.01, (y0 + y1) / 2, z1 - drop), cass, 0.005)
+    wall_box(f"{prefix}_blind_bar", side, uc, z1 - drop, width - 0.02, 0.025, 0.03, 0.08, cass, W, D, 0.005)
 
 
 def build_environment(spec):

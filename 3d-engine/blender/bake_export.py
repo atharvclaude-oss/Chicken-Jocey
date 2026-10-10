@@ -133,7 +133,7 @@ fmin = floor.matrix_world @ Vector(floor.bound_box[0])
 fmax = floor.matrix_world @ Vector(floor.bound_box[6])
 room_center = Vector(((fmin.x + fmax.x) / 2, (fmin.y + fmax.y) / 2, 1.2))
 for o in shell:
-    if not o.name.startswith("window_"):
+    if not o.name.startswith(("window_", "door_")):
         strip_hidden_faces(o, room_center)
 
 # 2. Bake UVs + diffuse lighting per object.

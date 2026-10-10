@@ -1,4 +1,4 @@
-# roomcommerce
+# Room8
 
 Shop the room, not just the product. Customers browse complete designer rooms, click any object inside a room, and buy single pieces or the whole room.
 
