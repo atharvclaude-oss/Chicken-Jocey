@@ -46,7 +46,8 @@ async function main() {
     const data = {
       name: p.name,
       description: p.description,
-      status: p.available ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK,
+      // Coming-soon pieces (no supplier listing applied yet) stay out of the public catalogue.
+      status: p.comingSoon ? ProductStatus.DRAFT : p.available ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK,
       categoryId: categoryIds.get(p.category)!,
       dimensionsLabel: p.dimensions,
       shippingEstimate: p.shippingEstimate,
@@ -115,7 +116,14 @@ async function main() {
     const listing = await db.supplierProduct.upsert({
       where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
       update: data,
-      create: { supplierId, supplierSku: source.supplierSku, availability: Availability.UNKNOWN, ...data },
+      // API-checked listings (CJ) carry their stock check; marketplace links stay UNKNOWN until verified.
+      create: {
+        supplierId,
+        supplierSku: source.supplierSku,
+        availability: source.inStock === undefined ? Availability.UNKNOWN : source.inStock ? Availability.AVAILABLE : Availability.OUT_OF_STOCK,
+        estimatedDeliveryDays: source.deliveryDays ?? null,
+        ...data,
+      },
     });
     // Drop listings the sheet no longer routes this variant to.
     await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId, id: { not: listing.id } } });
@@ -199,6 +207,7 @@ function sourcingNotes(source: ReturnType<typeof loadProductSourcing>[number] | 
 const PLATFORM_NAMES: Record<SupplierPlatform, string> = {
   ALIEXPRESS: "AliExpress",
   ALIBABA: "Alibaba",
+  CJDROPSHIPPING: "CJdropshipping",
   DISTRIBUTOR: "Distributor",
   OTHER: "Other",
 };

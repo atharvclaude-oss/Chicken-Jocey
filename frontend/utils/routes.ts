@@ -4,3 +4,6 @@ export function roomHref(roomId: string, productId?: string) {
   if (productId) q.set("product", productId);
   return `/?${q}`;
 }
+
+/** A room's Featured Catalogue: every piece placed in that room. */
+export const featuredCatalogueHref = (roomId: string) => `/rooms/${roomId}`;

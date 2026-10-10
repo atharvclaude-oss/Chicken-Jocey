@@ -4,6 +4,8 @@ import type { ProductCategory } from "@shared/types";
 import { ProductCard } from "@/components/catalogue/ProductCard";
 import { categoryLabels, getProducts, getRoomsByProduct } from "@/services/products";
 import { getStyles } from "@/services/rooms";
+import { getScenes } from "@/services/scenes";
+import { featuredCatalogueHref } from "@/utils/routes";
 import { pluralize } from "@/utils/format";
 
 export const metadata: Metadata = {
@@ -18,7 +20,8 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
   const style = typeof params.style === "string" ? params.style : undefined;
   const category = isCategory(params.category) ? params.category : undefined;
 
-  const [allStyles, allProducts, products, roomsByProduct] = await Promise.all([
+  const [rooms, allStyles, allProducts, products, roomsByProduct] = await Promise.all([
+    getScenes(),
     getStyles(),
     getProducts(),
     getProducts({ style, category }),
@@ -54,6 +57,23 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
     <div className="mx-auto max-w-[1400px] px-4 pb-24 pt-12 md:px-8 md:pt-16">
       <h1 className="text-4xl font-semibold tracking-tighter md:text-6xl">Catalogue</h1>
       <p className="mt-4 max-w-[48ch] text-lg text-muted">Every piece from every room, sold on its own.</p>
+
+      <nav aria-label="Featured catalogues" className="mt-8">
+        <p className="text-sm text-muted">Shop one room&apos;s featured catalogue</p>
+        <ul className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
+          {rooms.map((r) => (
+            <li key={r.id} className="shrink-0">
+              <Link
+                href={featuredCatalogueHref(r.id)}
+                className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm transition-colors hover:border-fg/40"
+              >
+                {r.name}
+                <span className="font-mono text-xs tabular-nums text-muted">{r.productIds.length}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <div className="mt-10 space-y-4">
         <FilterRow label="Style">

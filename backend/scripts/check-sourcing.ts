@@ -1,26 +1,36 @@
-// Checks that every shoppable object in the generated 3D rooms routes to a
-// catalogue product and a supplier listing.
+// Checks that every object in every 3D room is shoppable: it maps to a
+// catalogue product, and that product routes to an exact supplier listing.
 //
 //   npm run check-sourcing
 //
-// A room object is shoppable when it has a `productId` (3d-engine/rooms/*.json,
-// exported into the .glb as glTF extras). Its 3D model may come from the asset
-// library (Poly Haven) or be modelled in code: either way, the product we sell
-// is fulfilled from the listing in data/product-sourcing.tsv, never from the
-// model. Exits non-zero on broken links; search-only products are warnings
-// (shoppable on the site, but someone must pick an exact listing before launch).
+// Objects map to products in frontend/services/room-catalog.json (glTF root
+// node name -> product id). This reads each room's .glb to confirm every mapped
+// node exists and that no furniture or decor object is left unmapped (i.e.
+// unclickable). The product we sell is fulfilled from its listing in
+// data/cj-listings.tsv (or data/product-sourcing.tsv), never from the 3D model.
+// Exits non-zero on broken links. Products without a listing yet are warnings:
+// they show as "coming soon" on the site until `npm run cj:apply` links them.
 
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { products } from "../../frontend/services/mock-data.ts";
 import { scenes } from "../../frontend/services/scenes.ts";
 import { loadProductSourcing } from "../src/modules/sourcing/sourcing-sheet.ts";
 
-const ROOMS_DIR = fileURLToPath(new URL("../../3d-engine/rooms/", import.meta.url));
+const PUBLIC = fileURLToPath(new URL("../../frontend/public/", import.meta.url));
+/** Room shell and fixtures that aren't products (walls, floor, doors, window frames). */
+const SHELL = /^(wall_|baseboard_|ceiling$|ceiling_\d|floor|door_|window_(?!.*_blind)|accent|light$|Camera|Sun)/;
 
-interface SpecObject {
-  asset: string;
-  productId?: string;
+/** Root node names of a .glb's default scene. */
+export function glbRootNames(file: string): string[] {
+  const buf = readFileSync(file);
+  const jsonLength = buf.readUInt32LE(12);
+  const gltf = JSON.parse(buf.subarray(20, 20 + jsonLength).toString("utf8")) as {
+    nodes: { name?: string }[];
+    scenes: { nodes: number[] }[];
+    scene?: number;
+  };
+  return gltf.scenes[gltf.scene ?? 0]!.nodes.map((i) => gltf.nodes[i]?.name ?? "");
 }
 
 const errors: string[] = [];
@@ -35,46 +45,38 @@ try {
 }
 const catalogue = new Map(products.map((p) => [p.id, p]));
 
-// Room id -> product ids, from the room specs and the frontend scene list.
-const rooms = new Map<string, { productId: string; asset: string }[]>();
-for (const file of readdirSync(ROOMS_DIR).filter((f) => f.endsWith(".json"))) {
-  const spec = JSON.parse(readFileSync(ROOMS_DIR + file, "utf8")) as { id: string; objects: SpecObject[] };
-  rooms.set(
-    spec.id,
-    spec.objects.filter((o) => o.productId).map((o) => ({ productId: o.productId!, asset: o.asset })),
-  );
-}
-for (const scene of scenes) {
-  const spec = rooms.get(scene.id);
-  if (!spec) {
-    errors.push(`${scene.id}: in frontend/services/scenes.ts but has no 3d-engine/rooms/${scene.id}.json`);
-    continue;
-  }
-  const tagged = new Set(spec.map((o) => o.productId));
-  for (const id of scene.productIds) {
-    if (!tagged.has(id)) errors.push(`${scene.id}: scenes.ts lists ${id}, but no object in the room spec is tagged with it`);
-  }
-  for (const id of tagged) {
-    if (!scene.productIds.includes(id)) errors.push(`${scene.id}: room spec tags ${id}, but scenes.ts doesn't list it (it won't be clickable)`);
-  }
-}
-
 const rows: string[][] = [];
-for (const [roomId, objects] of rooms) {
-  for (const { productId, asset } of objects) {
+let objects = 0;
+for (const scene of scenes) {
+  if (scene.splat) continue;
+  const items = scene.items ?? {};
+  const roots = glbRootNames(PUBLIC + scene.model.replace(/^\//, "").replace(/\?.*$/, ""));
+  const covered = (root: string) => Object.keys(items).some((k) => root === k || root.startsWith(`${k}_`));
+
+  for (const node of Object.keys(items)) {
+    if (!roots.some((r) => r === node || r.startsWith(`${node}_`))) {
+      errors.push(`${scene.id}: room-catalog.json maps "${node}", but the model has no such object`);
+    }
+  }
+  for (const root of roots) {
+    if (!SHELL.test(root) && !covered(root)) errors.push(`${scene.id}: "${root}" in the model isn't mapped to a product (it won't be clickable)`);
+  }
+
+  for (const [node, productId] of Object.entries(items)) {
+    objects++;
     const product = catalogue.get(productId);
     const source = sourcing.get(productId);
-    if (!product) errors.push(`${roomId}: ${asset} is tagged ${productId}, which is not a catalogue product`);
+    if (!product) errors.push(`${scene.id}: ${node} maps to ${productId}, which is not a catalogue product`);
     if (!source) {
-      errors.push(`${roomId}: ${productId} has no row in backend/data/product-sourcing.tsv`);
+      warnings.push(`${productId}: no supplier listing yet (coming soon). Run npm run cj:search, pick, npm run cj:apply`);
     } else if (source.kind === "search") {
       warnings.push(`${productId}: search link only, pick an exact ${source.platform} listing`);
-    } else if (!source.sku) {
-      warnings.push(`${productId}: listing not in sourcing.tsv yet, so it has no cost or retail check`);
     } else if (source.unitCostCents === null) {
-      warnings.push(`${productId}: ${source.sku} has no unit cost in sourcing.tsv`);
+      warnings.push(`${productId}: listing has no unit cost yet`);
+    } else if (source.inStock === false) {
+      warnings.push(`${productId}: CJ listing was out of stock when last checked`);
     }
-    rows.push([roomId, productId, asset, source ? `${source.platform} ${source.kind}` : "MISSING", source?.url ?? ""]);
+    rows.push([scene.id, node, productId, source ? `${source.platform} ${source.kind}` : "coming soon", source?.url ?? ""]);
   }
 }
 
@@ -83,6 +85,7 @@ for (const r of rows) console.log(r.map((c, i) => (i < 4 ? c.padEnd(width(i)) : 
 console.log();
 for (const w of new Set(warnings)) console.warn(`warn  ${w}`);
 for (const e of errors) console.error(`error ${e}`);
-const listings = [...sourcing.values()].filter((s) => s.kind === "listing").length;
-console.log(`\n${rows.length} shoppable objects in ${rooms.size} rooms; ${listings}/${sourcing.size} products have an exact listing.`);
+const roomProducts = new Set(rows.map((r) => r[2]!));
+const listed = [...roomProducts].filter((id) => sourcing.get(id)?.kind === "listing").length;
+console.log(`\n${objects} shoppable objects in ${scenes.filter((s) => !s.splat).length} rooms; ${listed}/${roomProducts.size} products have an exact listing.`);
 if (errors.length) process.exit(1);

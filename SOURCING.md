@@ -1,5 +1,19 @@
 # Product sourcing
 
+## CJdropshipping (current path)
+
+Every object in every 3D room is a product (`frontend/services/room-catalog.json`: glTF object name -> product). Each product is fulfilled by one exact CJdropshipping product + variant, bought through the CJ API after the customer pays.
+
+1. Put the CJ API key in `backend/.env` as `CJ_API_KEY` (cjdropshipping.com > My CJ > Authorization > API).
+2. `npm run cj:search` (in `backend/`): searches CJ for every product without a listing (keywords in `data/cj-search.json`) and writes a visual review page, `data/cj-candidates/index.html`.
+3. Pick the exact match per product into `data/cj-picks.json` as `{ "<product id>": { "pid": "...", "vid": "..." } }`.
+4. `npm run cj:apply`: re-checks each variant on CJ, takes the cheapest US shipping, prices at the 2x floor, saves the photo, and writes `data/cj-listings.tsv` (private: CJ ids and costs) plus `frontend/services/catalog-offers.json` (public: price, photo, shipping window). Re-run any time to refresh prices and stock.
+5. `npm run db:seed` loads the listings; `npm run check-sourcing` confirms every room object maps to a product with a listing.
+
+Until a product is applied it shows as "coming soon": clickable in the room and listed in the room's featured catalogue (`/rooms/<room id>`), but not buyable. Paid orders wait for admin approval; approval re-checks CJ's live price and stock, then places the CJ order (paid from the CJ balance) via `src/modules/suppliers/cj-adapter.ts`.
+
+## Older marketplace sourcing (AliExpress / Alibaba)
+
 Supplier listings for the products tagged in the 3D rooms. Orders are fulfilled by buying from these listings and shipping to the customer. Customers never see supplier links or costs.
 
 **Status: nothing here is verified yet.** The links came from searching AliExpress and Alibaba. AliExpress pages require a login to view, so live prices, stock, colors and shipping times could not be checked. Before launch, someone on the team must open each link, choose the exact listing and variant, and record the cost.

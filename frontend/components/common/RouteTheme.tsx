@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 // Routes that sit on pure black, nav and footer included.
-const DARK = [/^\/$/, /^\/catalogue/];
+const DARK = [/^\/$/, /^\/catalogue/, /^\/rooms\//];
 
 export function RouteTheme({ children }: { children: ReactNode }) {
   const pathname = usePathname();

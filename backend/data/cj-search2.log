@@ -1,0 +1,40 @@
+
+> backend@0.1.0 cj:search
+> tsx scripts/cj-search.ts small-potted-plant,tall-potted-plant,leafy-floor-plant,arc-abstract-print,warm-abstract-print,dusk-abstract-print,checker-abstract-print,taupe-boucle-rug,brown-boucle-rug,cream-shag-rug,grey-shag-rug,modern-coffee-table,mid-century-lounge-chair,modern-armchair,arc-floor-lamp,dome-pendant-light,oak-side-table,upholstered-daybed,linen-pillow-set-taupe,linen-pillow-set-sand,tripod-table-lamp,27-inch-monitor,racing-gaming-chair,oak-wardrobe,black-bookshelf,chesterfield-sofa,victorian-coffee-table,victorian-side-table,antique-bookcase,crystal-chandelier,framed-oil-portrait,grandfather-clock --refresh
+
+Searching CJ for 32 products (0 already listed)...
+[1/32] small-potted-plant: 8 candidates for "artificial potted plant"
+[2/32] tall-potted-plant: 8 candidates for "artificial tree potted large"
+[3/32] leafy-floor-plant: 8 candidates for "artificial ficus tree"
+[4/32] arc-abstract-print: 8 candidates for "mid century modern wall art print"
+[5/32] warm-abstract-print: 8 candidates for "boho sun abstract canvas"
+[6/32] dusk-abstract-print: 8 candidates for "sunset gradient canvas print"
+[7/32] checker-abstract-print: 8 candidates for "checkered pattern poster"
+[8/32] taupe-boucle-rug: 8 candidates for "solid color plush area rug"
+[9/32] brown-boucle-rug: 8 candidates for "brown solid area rug living room"
+[10/32] cream-shag-rug: 8 candidates for "white shaggy rug rectangle"
+[11/32] grey-shag-rug: 8 candidates for "grey shaggy area rug"
+[12/32] modern-coffee-table: 8 candidates for "solid wood coffee table minimalist"
+[13/32] mid-century-lounge-chair: 8 candidates for "lounge chair and ottoman leather"
+[14/32] modern-armchair: 8 candidates for "mid century armchair wood"
+[15/32] arc-floor-lamp: 8 candidates for "arc floor lamp living room"
+[16/32] dome-pendant-light: 8 candidates for "globe pendant light"
+[17/32] oak-side-table: 8 candidates for "solid wood end table"
+[18/32] upholstered-daybed: 8 candidates for "grey daybed upholstered"
+[19/32] linen-pillow-set-taupe: 8 candidates for "linen pillow cover"
+[20/32] linen-pillow-set-sand: 8 candidates for "linen pillow cover"
+[21/32] tripod-table-lamp: 8 candidates for "tripod lamp fabric shade"
+[22/32] 27-inch-monitor: 8 candidates for "computer monitor 27"
+[23/32] racing-gaming-chair: 8 candidates for "white gaming chair"
+[24/32] oak-wardrobe: 8 candidates for "wood wardrobe closet"
+[25/32] black-bookshelf: 8 candidates for "black bookcase 5 shelves"
+[26/32] chesterfield-sofa: 8 candidates for "chesterfield"
+[27/32] victorian-coffee-table: 8 candidates for "antique coffee table carved"
+[28/32] victorian-side-table: 8 candidates for "pedestal end table"
+[29/32] antique-bookcase: 8 candidates for "wooden bookcase with doors"
+[30/32] crystal-chandelier: 8 candidates for "crystal chandelier candle"
+[31/32] framed-oil-portrait: 8 candidates for "portrait canvas painting"
+[32/32] grandfather-clock: fetch failed
+
+Review: C:\Users\zeker\OneDrive\Documents\GitHub\Chicken-Jocey\backend\data\cj-candidates/index.html
+Then record picks in data/cj-picks.json and run npm run cj:apply.

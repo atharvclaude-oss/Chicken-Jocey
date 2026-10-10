@@ -4,6 +4,7 @@
 //
 
 import type { Product, RoomStyle } from "@shared/types";
+import { catalogProducts } from "./catalog";
 
 export const styles: RoomStyle[] = [
   {
@@ -44,5 +45,5 @@ export const styles: RoomStyle[] = [
   },
 ];
 
-// The catalogue is empty for now: rooms are on show, nothing is for sale yet.
-export const products: Product[] = [];
+// Every object in every room (see catalog.ts). Coming-soon until its CJ listing is applied.
+export const products: Product[] = catalogProducts;

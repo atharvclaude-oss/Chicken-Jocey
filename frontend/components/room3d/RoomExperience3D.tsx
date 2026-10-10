@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProgress } from "@react-three/drei";
-import { ArrowCounterClockwise, Cube, PersonSimpleWalk } from "@phosphor-icons/react";
+import Link from "next/link";
+import { ArrowCounterClockwise, Cube, PersonSimpleWalk, SquaresFour } from "@phosphor-icons/react";
 import type { Product } from "@shared/types";
 import type { RoomScene } from "@/services/scenes";
 import { ProductDrawer } from "@/components/room/ProductDrawer";
 import { useRoomStore } from "@/store/room";
 import { track } from "@/utils/analytics";
+import { featuredCatalogueHref } from "@/utils/routes";
 import { replaceQuery } from "@/utils/url-state";
 import { Room8Loader } from "@/components/brand/Room8Loader";
 import { RoomCanvas, type ViewMode } from "./RoomCanvas";
@@ -104,6 +106,15 @@ export function RoomExperience3D({
           >
             <ArrowCounterClockwise size={18} />
           </button>
+          <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-white/15" />
+          <Link
+            href={featuredCatalogueHref(room.id)}
+            aria-label={`Featured catalogue for ${room.name}`}
+            className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <SquaresFour size={18} />
+            <span className="hidden sm:inline">Catalogue</span>
+          </Link>
         </div>
       </div>
 

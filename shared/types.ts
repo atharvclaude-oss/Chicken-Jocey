@@ -34,6 +34,8 @@ export interface Product {
   dimensions: string;
   shippingEstimate: string;
   available: boolean;
+  /** Placed in a room but its supplier listing isn't linked yet: shown, not buyable. */
+  comingSoon?: boolean;
 }
 
 /** Position of a purchasable object in a room render, in % of width/height. */
