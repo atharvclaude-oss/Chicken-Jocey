@@ -84,6 +84,21 @@ async function cleanup() {
 beforeAll(async () => {
   await cleanup();
   const category = await prisma.category.findUniqueOrThrow({ where: { slug: "lighting" } });
+  // Products with no supplier listing, and one that is sold out.
+  for (const [slug, status, availability] of [
+    ["test-unsourced-lamp", ProductStatus.ACTIVE, Availability.AVAILABLE],
+    ["test-sold-out-candle", ProductStatus.OUT_OF_STOCK, Availability.OUT_OF_STOCK],
+  ] as const) {
+    await prisma.product.create({
+      data: {
+        slug,
+        name: slug,
+        status,
+        categoryId: category.id,
+        variants: { create: { sku: slug, priceCents: 2499, image: "/x.jpg", availability } },
+      },
+    });
+  }
   const sup = await prisma.supplier.create({ data: { name: "test-supplier", platform: SupplierPlatform.ALIEXPRESS } });
   await prisma.product.create({
     data: {
@@ -124,7 +139,7 @@ describe("checkout", () => {
     const res = await checkout([
       { productId: "test-order-lamp", quantity: 1 },
       { productId: "test-order-lamp", quantity: 1 },
-      { productId: "mushroom-lamp", quantity: 1 },
+      { productId: "test-unsourced-lamp", quantity: 1 },
     ]);
     expect(res.statusCode).toBe(201);
     const body = res.json();
@@ -153,7 +168,7 @@ describe("checkout", () => {
 
   it("rejects unknown and unavailable products", async () => {
     expect((await checkout([{ productId: "test-nope", quantity: 1 }])).statusCode).toBe(404);
-    expect((await checkout([{ productId: "pillar-candle", quantity: 1 }])).statusCode).toBe(409);
+    expect((await checkout([{ productId: "test-sold-out-candle", quantity: 1 }])).statusCode).toBe(409);
     expect((await checkout([{ productId: "test-order-lamp", quantity: 0 }])).statusCode).toBe(400);
     expect((await checkout([])).statusCode).toBe(400);
   });
@@ -168,7 +183,7 @@ describe("stripe webhook", () => {
   it("marks the order paid and queues fulfilment for approval, once", async () => {
     const { orderId } = (await checkout([
       { productId: "test-order-lamp", quantity: 2 },
-      { productId: "mushroom-lamp", quantity: 1 },
+      { productId: "test-unsourced-lamp", quantity: 1 },
     ])).json();
 
     expect((await payFor(orderId)).statusCode).toBe(200);
@@ -183,7 +198,7 @@ describe("stripe webhook", () => {
     const listed = order.fulfillments.find((f) => f.supplierProductId)!;
     expect(listed.status).toBe(FulfillmentStatus.AWAITING_APPROVAL);
     expect(listed.expectedCostCents).toBe(800 * 2 + 200);
-    // mushroom-lamp has no supplier listing yet: a person has to source it.
+    // test-unsourced-lamp has no supplier listing yet: a person has to source it.
     expect(order.fulfillments.find((f) => !f.supplierProductId)!.status).toBe(FulfillmentStatus.MANUAL_REVIEW);
   });
 

@@ -55,7 +55,7 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 200,
     size: { width: 5.0, depth: 4.2, height: 2.8 },
     walkStart: { x: 1.2, y: 0.5, lookAt: { x: 3.0, y: 3.2 } },
-    productIds: ["oak-gallery-frame", "woven-wool-rug", "arc-floor-lamp", "dome-pendant"],
+    productIds: [],
   },
   {
     id: "living-room-02",
@@ -65,20 +65,7 @@ export const scenes: RoomScene[] = [
     model: "/models/living-room-02.glb",
     size: { width: 5.2, depth: 4.2, height: 2.7 },
     walkStart: { x: 2.8, y: 1.05, lookAt: { x: 2.39, y: 3.5 } },
-    productIds: [
-      "living-sofa",
-      "living-armchair",
-      "living-coffee-table",
-      "living-rug",
-      "living-side-table",
-      "living-vase",
-      "living-tv-stand",
-      "living-art",
-      "living-pendant",
-      "living-bookshelf",
-      "living-plant-a",
-      "living-plant-b",
-    ],
+    productIds: [],
   },
   {
     // Measured from a phone video (COLMAP + SpatialLM): see 3d-engine/rooms/zeke-bedroom-01.json
@@ -91,7 +78,7 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 70,
     size: { width: 3.4, depth: 4.1, height: 2.7 },
     walkStart: { x: 2.05, y: 0.4, lookAt: { x: 2.6, y: 3.8 } },
-    productIds: ["linen-throw-pillow", "tripod-table-lamp", "faux-potted-plant", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
+    productIds: [],
   },
   {
     // Measured from a phone video (COLMAP + SpatialLM): see 3d-engine/rooms/samir-room-01.json
@@ -104,7 +91,7 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 70,
     size: { width: 4.2, depth: 3.65, height: 2.55 },
     walkStart: { x: 0.7, y: 0.5, lookAt: { x: 3.0, y: 3.0 } },
-    productIds: ["linen-throw-pillow", "tripod-table-lamp", "cream-shag-rug", "oak-gallery-frame", "gaming-chair"],
+    productIds: [],
   },
   {
     // Designed room, Sketchfab CC-BY furniture (see /credits): 3d-engine/rooms/neocolonial-parlour-01.json
@@ -117,18 +104,7 @@ export const scenes: RoomScene[] = [
     backgroundRotation: 100,
     size: { width: 5.6, depth: 4.8, height: 3.0 },
     walkStart: { x: 2.8, y: 0.5, lookAt: { x: 2.8, y: 4.0 } },
-    productIds: [
-      "neo-chesterfield-sofa",
-      "neo-wingback-chair",
-      "neo-coffee-table",
-      "neo-persian-rug",
-      "neo-side-table",
-      "neo-tiffany-lamp",
-      "neo-chandelier",
-      "neo-oil-portrait",
-      "neo-damask-curtains",
-      "neo-library-bookcase",
-    ],
+    productIds: [],
   },
 ];
 

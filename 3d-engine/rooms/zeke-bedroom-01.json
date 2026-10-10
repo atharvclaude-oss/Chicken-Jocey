@@ -107,8 +107,7 @@
       ],
       "rot": -90,
       "color": "#b3a99f",
-      "accent": "#5f5b56",
-      "productId": "linen-throw-pillow"
+      "accent": "#5f5b56"
     },
     {
       "asset": "proc:throw_blanket",
@@ -137,8 +136,7 @@
         0.55
       ],
       "rot": 0,
-      "watts": 22,
-      "productId": "tripod-table-lamp"
+      "watts": 22
     },
     {
       "asset": "proc:rug",
@@ -158,8 +156,7 @@
         0.97,
         0.92
       ],
-      "border": "#2b2b2b",
-      "productId": "cream-shag-rug"
+      "border": "#2b2b2b"
     },
     {
       "asset": "proc:desk",
@@ -206,8 +203,7 @@
         1.0,
         0.68
       ],
-      "rot": -100,
-      "productId": "gaming-chair"
+      "rot": -100
     },
     {
       "asset": "proc:cabinet",
@@ -235,8 +231,7 @@
         0.62,
         0.82
       ],
-      "image": "art/print_arc.jpg",
-      "productId": "oak-gallery-frame"
+      "image": "art/print_arc.jpg"
     },
     {
       "asset": "polyhaven:potted_plant_01",
@@ -244,8 +239,7 @@
         3.1,
         0.34
       ],
-      "rot": 140,
-      "productId": "faux-potted-plant"
+      "rot": 140
     },
     {
       "asset": "proc:ceiling_light",

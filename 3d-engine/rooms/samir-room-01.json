@@ -104,8 +104,7 @@
       ],
       "rot": 0,
       "color": "#cdbfa6",
-      "accent": "#6e655d",
-      "productId": "linen-throw-pillow"
+      "accent": "#6e655d"
     },
     {
       "asset": "proc:desk",
@@ -147,8 +146,7 @@
       ],
       "rot": 180,
       "color": "#262628",
-      "accent": "#2e2e31",
-      "productId": "gaming-chair"
+      "accent": "#2e2e31"
     },
     {
       "asset": "proc:cabinet",
@@ -174,8 +172,7 @@
         0.55
       ],
       "rot": 0,
-      "watts": 22,
-      "productId": "tripod-table-lamp"
+      "watts": 22
     },
     {
       "asset": "proc:bookshelf",
@@ -205,8 +202,7 @@
       ],
       "texture": "curly_teddy_natural",
       "tile": 0.35,
-      "color": "#a9a9ad",
-      "productId": "cream-shag-rug"
+      "color": "#a9a9ad"
     },
     {
       "asset": "proc:framed_print",
@@ -220,8 +216,7 @@
         0.5,
         0.7
       ],
-      "image": "art/living_art_01.png",
-      "productId": "oak-gallery-frame"
+      "image": "art/living_art_01.png"
     },
     {
       "asset": "proc:framed_print",

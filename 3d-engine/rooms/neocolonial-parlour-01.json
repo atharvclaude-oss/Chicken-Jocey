@@ -81,8 +81,7 @@
       "fit": {
         "axis": "x",
         "size": 3.2
-      },
-      "productId": "neo-persian-rug"
+      }
     },
     {
       "asset": "sketchfab:e9854400c0c1410db01c8db897ef5359",
@@ -116,7 +115,6 @@
         "axis": "z",
         "size": 0.95
       },
-      "productId": "neo-oil-portrait",
       "decimate": 0.25
     },
     {
@@ -147,7 +145,6 @@
         "axis": "x",
         "size": 2.1
       },
-      "productId": "neo-chesterfield-sofa",
       "decimate": 0.3
     },
     {
@@ -161,7 +158,6 @@
         "axis": "z",
         "size": 1.15
       },
-      "productId": "neo-wingback-chair",
       "decimate": 0.3
     },
     {
@@ -175,7 +171,6 @@
         "axis": "z",
         "size": 1.15
       },
-      "productId": "neo-wingback-chair",
       "decimate": 0.3
     },
     {
@@ -189,8 +184,7 @@
       "fit": {
         "axis": "z",
         "size": 0.46
-      },
-      "productId": "neo-coffee-table"
+      }
     },
     {
       "asset": "sketchfab:12e059dd5bf74029a916147e3331e72d",
@@ -203,7 +197,6 @@
         "axis": "z",
         "size": 0.55
       },
-      "productId": "neo-side-table",
       "decimate": 0.5
     },
     {
@@ -217,7 +210,6 @@
         "axis": "z",
         "size": 0.55
       },
-      "productId": "neo-side-table",
       "decimate": 0.5
     },
     {
@@ -232,7 +224,6 @@
         "axis": "z",
         "size": 0.62
       },
-      "productId": "neo-tiffany-lamp",
       "light": {
         "watts": 14,
         "kelvin": 2400,
@@ -253,7 +244,6 @@
         "axis": "z",
         "size": 0.62
       },
-      "productId": "neo-tiffany-lamp",
       "light": {
         "watts": 14,
         "kelvin": 2400,
@@ -272,8 +262,7 @@
       "fit": {
         "axis": "z",
         "size": 2.3
-      },
-      "productId": "neo-library-bookcase"
+      }
     },
     {
       "asset": "sketchfab:e5b01c717dbd4244b861168eddd67375",
@@ -286,7 +275,6 @@
         "axis": "z",
         "size": 2.6
       },
-      "productId": "neo-damask-curtains",
       "decimate": 0.6
     },
     {
@@ -300,7 +288,6 @@
         "axis": "z",
         "size": 1.0
       },
-      "productId": "neo-chandelier",
       "light": {
         "watts": 70,
         "kelvin": 2600,

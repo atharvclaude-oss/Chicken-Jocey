@@ -8,7 +8,6 @@ import type { Product } from "@shared/types";
 import type { RoomScene } from "@/services/scenes";
 import { useLoading } from "@/store/loading";
 import { track } from "@/utils/analytics";
-import { pluralize } from "@/utils/format";
 import { replaceQuery } from "@/utils/url-state";
 import { RoomExperience3D } from "./RoomExperience3D";
 import { RoomRing } from "./RoomRing";
@@ -105,7 +104,6 @@ export function SceneCarousel({
   }, [entered, target, turnTo, enter, leave]);
 
   if (count === 0) return null;
-  const pieces = productsByScene[active.id]?.length ?? 0;
 
   return (
     <div className="relative h-[calc(100dvh-4rem)] w-full overflow-hidden bg-black text-white">
@@ -158,7 +156,7 @@ export function SceneCarousel({
                   >
                     <h1 className="text-balance text-4xl font-semibold tracking-[-0.035em] md:text-6xl">{active.name}</h1>
                     <p className="mt-2 text-sm text-white/60 md:text-base">
-                      {active.style} · {pluralize(pieces, "piece")} to shop
+                      {active.style}
                     </p>
                   </motion.div>
                 </AnimatePresence>

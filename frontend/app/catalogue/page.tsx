@@ -18,11 +18,29 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
   const style = typeof params.style === "string" ? params.style : undefined;
   const category = isCategory(params.category) ? params.category : undefined;
 
-  const [styles, products, roomsByProduct] = await Promise.all([
+  const [allStyles, allProducts, products, roomsByProduct] = await Promise.all([
     getStyles(),
+    getProducts(),
     getProducts({ style, category }),
     getRoomsByProduct(),
   ]);
+  // Only offer styles that have something to buy (a room's style can have no catalogue pieces).
+  const styles = allStyles.filter((s) => s.slug === style || allProducts.some((p) => p.styles.includes(s.slug)));
+
+  if (allProducts.length === 0) {
+    return (
+      <div className="mx-auto max-w-[1400px] px-4 pb-24 pt-12 md:px-8 md:pt-16">
+        <h1 className="text-4xl font-semibold tracking-tighter md:text-6xl">Catalogue</h1>
+        <div className="mt-12 rounded-card border border-dashed border-line px-6 py-20 text-center">
+          <p className="font-medium">Nothing for sale yet</p>
+          <p className="mt-2 text-sm text-muted">New pieces are on their way. In the meantime, walk through the rooms.</p>
+          <Link href="/" className="mt-5 inline-block text-sm font-medium underline underline-offset-4">
+            Explore the rooms
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const href = (next: { style?: string; category?: string }) => {
     const q = new URLSearchParams();
