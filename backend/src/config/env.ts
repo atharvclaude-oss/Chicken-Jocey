@@ -33,6 +33,11 @@ const schema = z.object({
    * Set = CJ listings are checked and ordered through CJ's API; unset = mock supplier.
    */
   CJ_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
+  /** New-order email alerts via resend.com: both set = on. */
+  RESEND_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().startsWith("re_").optional()),
+  ORDER_ALERT_EMAIL: z.preprocess((v) => (v === "" ? undefined : v), z.string().email().optional()),
+  /** Sender address. Resend's test sender only delivers to your own Resend account email. */
+  ORDER_ALERT_FROM: z.string().default("Room8 Orders <onboarding@resend.dev>"),
   /** Storefront origin, for Stripe's success/cancel redirects and product images. */
   SITE_URL: z.string().url().default("http://localhost:3000"),
 });

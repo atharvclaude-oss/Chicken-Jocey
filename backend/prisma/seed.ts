@@ -85,15 +85,25 @@ async function main() {
     productIds.set(p.id, { productId: product.id, variantId: variant.id });
   }
 
-  // Supplier listings: one marketplace supplier per platform, one listing per
-  // product with an exact item page. Searches stay in internalNotes until
-  // someone picks the listing.
+  // Products that left the catalogue can't be bought, even by a hand-made checkout request.
+  await db.product.updateMany({
+    where: { slug: { notIn: products.map((p) => p.slug) }, status: { in: [ProductStatus.ACTIVE, ProductStatus.OUT_OF_STOCK, ProductStatus.PAUSED] } },
+    data: { status: ProductStatus.DISCONTINUED },
+  });
+
+  // Supplier listings: one marketplace supplier per platform, one listing per product.
+  // AliExpress rows are manual purchases: someone buys the matching listing by hand
+  // after the customer pays, so it gets a listing too (the search link) and every paid order
+  // lands in the admin queue with it. Other searches stay in internalNotes until picked.
   const supplierIds = new Map<SupplierPlatform, string>();
   let listings = 0;
   for (const source of sourcing.values()) {
     const ids = productIds.get(source.productSlug);
     if (!ids) throw new Error(`product-sourcing.tsv: ${source.productSlug} is not a catalogue product`);
-    if (source.kind !== "listing" || !source.supplierSku) {
+    // Every AliExpress row (search or exact item) is bought by hand, so it is orderable as soon as it is listed.
+    const manual = source.platform === "ALIEXPRESS";
+    const supplierSku = source.supplierSku ?? (manual ? `manual:${source.productSlug}` : null);
+    if ((source.kind !== "listing" && !manual) || !supplierSku) {
       await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId } });
       continue;
     }
@@ -104,8 +114,12 @@ async function main() {
     // Costs stay 0 until filled in sourcing.tsv; UNKNOWN availability keeps
     // fulfilment from ordering an unchecked listing. Imported CJ variants carry
     // live stock, so they are orderable (or out of stock) straight away.
-    const checked =
-      source.stock === null ? {} : { availability: source.stock > 0 ? Availability.AVAILABLE : Availability.OUT_OF_STOCK, lastCheckedAt: new Date() };
+    const checked = manual
+      ? // Stock and price are checked by the person buying it, so it is orderable but unverified.
+        { availability: Availability.LOW_CONFIDENCE }
+      : source.stock === null
+        ? {}
+        : { availability: source.stock > 0 ? Availability.AVAILABLE : Availability.OUT_OF_STOCK, lastCheckedAt: new Date() };
     const data = {
       variantId: ids.variantId,
       url: source.url,
@@ -115,12 +129,12 @@ async function main() {
       ...checked,
     };
     const previous = await db.supplierProduct.findUnique({
-      where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
+      where: { supplierId_supplierSku: { supplierId, supplierSku } },
     });
     const listing = await db.supplierProduct.upsert({
-      where: { supplierId_supplierSku: { supplierId, supplierSku: source.supplierSku } },
+      where: { supplierId_supplierSku: { supplierId, supplierSku } },
       update: data,
-      create: { supplierId, supplierSku: source.supplierSku, availability: Availability.UNKNOWN, ...data },
+      create: { supplierId, supplierSku, availability: Availability.UNKNOWN, ...data },
     });
     // Drop listings the sheet no longer routes this variant to.
     await db.supplierProduct.deleteMany({ where: { variantId: ids.variantId, id: { not: listing.id } } });

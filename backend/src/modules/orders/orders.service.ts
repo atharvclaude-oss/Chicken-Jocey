@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import type { Db } from "../../db/client.ts";
 import { Availability, FulfillmentStatus, OrderStatus, ProductStatus } from "../../generated/prisma/enums.ts";
 import { isBelowFloor } from "../pricing/pricing.ts";
+import type { OrderAlert } from "../notifications/order-alerts.ts";
 import type { ShippingAddress, SupplierRegistry } from "../suppliers/supplier-adapter.ts";
 
 const SELLABLE: Availability[] = [Availability.AVAILABLE, Availability.LOW_CONFIDENCE];
@@ -31,6 +32,8 @@ export class OrderService {
     private stripe: Stripe,
     private suppliers: SupplierRegistry,
     private siteUrl: string,
+    /** Tells the team a new order was paid (email). Failures are logged, never block payment. */
+    private alert?: OrderAlert,
   ) {}
 
   /**
@@ -141,7 +144,7 @@ export class OrderService {
         }
       : null;
 
-    await this.db.$transaction(async (tx) => {
+    const newlyPaid = await this.db.$transaction(async (tx) => {
       // Only the first delivery of the event moves the order; repeats are no-ops.
       const { count } = await tx.order.updateMany({
         where: { id: orderId, status: OrderStatus.PAYMENT_PENDING },
@@ -153,7 +156,7 @@ export class OrderService {
           stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id,
         },
       });
-      if (count === 0) return;
+      if (count === 0) return false;
 
       // One fulfilment per supplier listing; items with no orderable listing go to manual review.
       const items = await tx.orderItem.findMany({
@@ -180,7 +183,9 @@ export class OrderService {
           },
         });
       }
+      return true;
     });
+    if (newlyPaid && this.alert) await this.alert(orderId).catch((err) => console.error("order alert failed", err));
   }
 
   /**
@@ -255,24 +260,100 @@ export class OrderService {
       where: { id },
       data: { status, trackingNumber: t.trackingNumber ?? f.trackingNumber, trackingUrl: t.trackingUrl ?? f.trackingUrl },
     });
-    const all = await this.db.fulfillment.findMany({ where: { orderId: f.orderId }, select: { status: true } });
+    await this.rollUpOrder(f.orderId);
+    return this.db.fulfillment.findUniqueOrThrow({ where: { id } });
+  }
+
+  /** An order is SHIPPED once every fulfilment has shipped, DELIVERED once all have arrived. */
+  private async rollUpOrder(orderId: string) {
+    const all = await this.db.fulfillment.findMany({ where: { orderId, status: { not: FulfillmentStatus.CANCELLED } }, select: { status: true } });
+    if (!all.length) return;
     const done = (s: FulfillmentStatus[]) => all.every((x) => s.includes(x.status));
     const next = done([FulfillmentStatus.DELIVERED])
       ? OrderStatus.DELIVERED
       : done([FulfillmentStatus.SHIPPED, FulfillmentStatus.DELIVERED])
         ? OrderStatus.SHIPPED
         : null;
-    if (next) await this.db.order.update({ where: { id: f.orderId }, data: { status: next } });
+    if (next) await this.db.order.update({ where: { id: orderId }, data: { status: next } });
+  }
+
+  // Manual purchasing (ManualPurchaseAdapter): a person buys each item on AliExpress after the
+  // customer pays and records each step here from the admin orders page.
+
+  /** Bought on AliExpress: record its order number and what it actually cost (item + shipping). */
+  async markPurchased(id: string, input: { supplierOrderId: string; costCents?: number; note?: string }) {
+    const { count } = await this.db.fulfillment.updateMany({
+      where: {
+        id,
+        status: { in: [FulfillmentStatus.AWAITING_APPROVAL, FulfillmentStatus.MANUAL_REVIEW] },
+        order: { status: { in: [OrderStatus.PAID, OrderStatus.FULFILLING] } },
+      },
+      data: {
+        status: FulfillmentStatus.SUPPLIER_PAID,
+        supplierOrderId: input.supplierOrderId,
+        actualCostCents: input.costCents ?? null,
+        approvedAt: new Date(),
+        note: input.note ?? "",
+      },
+    });
+    if (count === 0) throw new OrderError("Only a paid order waiting to be bought can be marked bought", 409);
+    const f = await this.db.fulfillment.findUniqueOrThrow({ where: { id } });
+    await this.db.order.update({ where: { id: f.orderId }, data: { status: OrderStatus.FULFILLING } });
+    return f;
+  }
+
+  /** The AliExpress seller shipped it: record tracking (shown on the customer's order page). */
+  async markShipped(id: string, input: { trackingNumber: string; trackingUrl?: string }) {
+    const { count } = await this.db.fulfillment.updateMany({
+      where: { id, status: { in: [FulfillmentStatus.SUPPLIER_PAID, FulfillmentStatus.SUPPLIER_ORDER_CREATED, FulfillmentStatus.SHIPPED] } },
+      data: {
+        status: FulfillmentStatus.SHIPPED,
+        trackingNumber: input.trackingNumber,
+        trackingUrl: input.trackingUrl || `https://www.17track.net/en/track?nums=${encodeURIComponent(input.trackingNumber)}`,
+      },
+    });
+    if (count === 0) throw new OrderError("Mark it bought before adding tracking", 409);
+    const f = await this.db.fulfillment.findUniqueOrThrow({ where: { id } });
+    await this.rollUpOrder(f.orderId);
+    return f;
+  }
+
+  async markDelivered(id: string) {
+    const { count } = await this.db.fulfillment.updateMany({
+      where: { id, status: FulfillmentStatus.SHIPPED },
+      data: { status: FulfillmentStatus.DELIVERED },
+    });
+    if (count === 0) throw new OrderError("Only a shipped item can be marked delivered", 409);
+    const f = await this.db.fulfillment.findUniqueOrThrow({ where: { id } });
+    await this.rollUpOrder(f.orderId);
+    return f;
+  }
+
+  /** Can't be bought (sold out, wrong listing...). Refund the customer in Stripe separately. */
+  async cancelFulfillment(id: string, note: string) {
+    const { count } = await this.db.fulfillment.updateMany({
+      where: { id, status: { in: [FulfillmentStatus.AWAITING_APPROVAL, FulfillmentStatus.MANUAL_REVIEW, FulfillmentStatus.SUPPLIER_PAID] } },
+      data: { status: FulfillmentStatus.CANCELLED, note },
+    });
+    if (count === 0) throw new OrderError("This item can no longer be cancelled here", 409);
     return this.db.fulfillment.findUniqueOrThrow({ where: { id } });
   }
 
+  /** The admin queue: everything a person needs to buy and ship each paid item by hand. */
   listFulfillments(status?: FulfillmentStatus) {
     return this.db.fulfillment.findMany({
-      where: status ? { status } : undefined,
-      orderBy: { createdAt: "asc" },
+      where: status ? { status } : { order: { status: { not: OrderStatus.PAYMENT_PENDING } } },
+      orderBy: { createdAt: "desc" },
       include: {
-        order: { select: { number: true, email: true, shippingAddress: true, status: true } },
-        items: { select: { productName: true, quantity: true, unitPriceCents: true } },
+        order: { select: { number: true, email: true, shippingAddress: true, status: true, totalCents: true, paidAt: true } },
+        items: {
+          select: {
+            productName: true,
+            quantity: true,
+            unitPriceCents: true,
+            variant: { select: { color: true, image: true, product: { select: { slug: true } } } },
+          },
+        },
         supplierProduct: { select: { url: true, supplierSku: true, supplier: { select: { name: true, platform: true } } } },
       },
     });

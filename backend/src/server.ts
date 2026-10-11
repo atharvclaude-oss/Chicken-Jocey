@@ -2,14 +2,13 @@ import Stripe from "stripe";
 import { buildApp } from "./app.ts";
 import { env } from "./config/env.ts";
 import { prisma } from "./db/client.ts";
-import { CjClient } from "./modules/suppliers/cj.ts";
-import { CjSupplierAdapter } from "./modules/suppliers/cj-adapter.ts";
-import { MockSupplierAdapter } from "./modules/suppliers/supplier-adapter.ts";
+import { resendOrderAlert } from "./modules/notifications/order-alerts.ts";
+import { ManualPurchaseAdapter } from "./modules/suppliers/manual-adapter.ts";
 
-// CJ listings go through CJ's API when a key is set. Platforms without an API
-// adapter yet "buy" at the cost on file.
-const mockSuppliers = new MockSupplierAdapter();
-const cjSupplier = env.CJ_API_KEY ? new CjSupplierAdapter(new CjClient(env.CJ_API_KEY)) : null;
+// Every order is bought by hand on AliExpress after the customer pays: paid orders queue in
+// /admin/orders with the customer's address and the product's AliExpress link. CJdropshipping
+// is disconnected (its adapter in modules/suppliers/cj-adapter.ts is kept but not used).
+const manualPurchase = new ManualPurchaseAdapter();
 
 const app = await buildApp({
   db: prisma,
@@ -23,8 +22,11 @@ const app = await buildApp({
         stripe: new Stripe(env.STRIPE_SECRET_KEY),
         webhookSecret: env.STRIPE_WEBHOOK_SECRET,
         siteUrl: env.SITE_URL,
-        // TODO(suppliers): real Alibaba / AliExpress adapters once those accounts have API access.
-        suppliers: (platform) => (platform === "CJDROPSHIPPING" && cjSupplier) || mockSuppliers,
+        suppliers: () => manualPurchase,
+        alert:
+          env.RESEND_API_KEY && env.ORDER_ALERT_EMAIL
+            ? resendOrderAlert({ db: prisma, apiKey: env.RESEND_API_KEY, to: env.ORDER_ALERT_EMAIL, from: env.ORDER_ALERT_FROM, siteUrl: env.SITE_URL })
+            : undefined,
       }
     : undefined,
 });

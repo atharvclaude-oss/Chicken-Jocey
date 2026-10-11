@@ -12,6 +12,7 @@ interface PublicOrder {
   status: string;
   totalCents: number;
   items: { name: string; quantity: number; unitPriceCents: number }[];
+  shipments: { trackingNumber: string; trackingUrl: string | null }[];
 }
 
 const STATUS_COPY: Record<string, string> = {
@@ -59,6 +60,25 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps<"/
             <span>Total</span>
             <span className="font-mono tabular-nums">{formatPrice(order.totalCents)}</span>
           </p>
+          {order.shipments.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-sm font-medium">Tracking</h2>
+              <ul className="mt-2 space-y-1 text-sm">
+                {order.shipments.map((s) => (
+                  <li key={s.trackingNumber}>
+                    {s.trackingUrl ? (
+                      <a href={s.trackingUrl} target="_blank" rel="noopener noreferrer" className="font-mono underline underline-offset-4">
+                        {s.trackingNumber}
+                      </a>
+                    ) : (
+                      <span className="font-mono">{s.trackingNumber}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="mt-8 text-sm text-muted">Bookmark this page: it updates with tracking once your order ships.</p>
         </>
       ) : (
         <p className="mt-3 text-muted">We couldn&apos;t load your order details, but your payment is safe. You&apos;ll get an email receipt from Stripe.</p>

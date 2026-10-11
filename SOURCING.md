@@ -1,6 +1,15 @@
 # Product sourcing
 
-## CJdropshipping (current path)
+## Manual AliExpress purchasing (current path)
+
+Since 2026-10-11 every order is bought by hand on AliExpress after the customer pays, and shipped
+straight to them. Each product's row in `backend/data/product-sourcing.tsv` is an `ALIEXPRESS`
+`search` link built from its name (its notes keep the CJ link it was sourced from, which shows
+exactly which product to look for). Paid orders queue at `/admin/orders`; see the backend README,
+"Manual purchasing". To use an exact AliExpress item instead of a search, replace the row's URL
+with the item page and set `kind` to `listing`.
+
+## CJdropshipping (disconnected; kept for reference)
 
 Every product is fulfilled by one exact CJdropshipping product + variant: the lamp collections and every object in the 3D rooms (`frontend/services/room-catalog.json` maps each glTF object to a product). One pipeline handles both:
 

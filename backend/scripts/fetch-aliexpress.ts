@@ -43,7 +43,7 @@ export function sign(params: Record<string, string>, secret: string): string {
   return createHmac("sha256", secret).update(base, "utf8").digest("hex").toUpperCase();
 }
 
-async function call(method: string, args: Record<string, string>): Promise<AeProduct[]> {
+export async function call(method: string, args: Record<string, string>): Promise<AeProduct[]> {
   const key = process.env.ALIEXPRESS_APP_KEY;
   const secret = process.env.ALIEXPRESS_APP_SECRET;
   if (!key || !secret) throw new Error("Set ALIEXPRESS_APP_KEY and ALIEXPRESS_APP_SECRET in backend/.env");

@@ -20,10 +20,11 @@ stripe.checkout.sessions.create = (async (params: Stripe.Checkout.SessionCreateP
 }) as unknown as typeof stripe.checkout.sessions.create;
 
 let supplier: SupplierAdapter = new MockSupplierAdapter();
+const alerts: string[] = [];
 const app = await buildApp({
   db: prisma,
   adminApiKey: ADMIN,
-  payments: { stripe, webhookSecret: WEBHOOK_SECRET, suppliers: () => supplier, siteUrl: "http://localhost:3000" },
+  payments: { stripe, webhookSecret: WEBHOOK_SECRET, suppliers: () => supplier, siteUrl: "http://localhost:3000", alert: async (id) => void alerts.push(id) },
 });
 
 const admin = { authorization: `Bearer ${ADMIN}` };
@@ -200,6 +201,8 @@ describe("stripe webhook", () => {
     expect(listed.expectedCostCents).toBe(800 * 2 + 200);
     // test-unsourced-lamp has no supplier listing yet: a person has to source it.
     expect(order.fulfillments.find((f) => !f.supplierProductId)!.status).toBe(FulfillmentStatus.MANUAL_REVIEW);
+    // The team is emailed once per paid order, not once per Stripe retry.
+    expect(alerts.filter((id) => id === orderId)).toHaveLength(1);
   });
 
   it("cancels the order when the session expires", async () => {
@@ -266,5 +269,59 @@ describe("fulfilment approval", () => {
     expect(pub.json()).toMatchObject({ status: "SHIPPED", totalCents: 2499 });
     expect(pub.json().shipments).toHaveLength(1);
     expect(JSON.stringify(pub.json())).not.toMatch(/cost|supplier/i); // never leak supplier data
+  });
+});
+
+describe("manual purchasing (buy on AliExpress by hand)", () => {
+  async function paidFulfillment() {
+    const { orderId } = (await checkout([{ productId: "test-order-lamp", quantity: 2 }])).json();
+    await payFor(orderId);
+    return prisma.fulfillment.findFirstOrThrow({ where: { orderId } });
+  }
+  const post = (url: string, payload?: object) => app.inject({ method: "POST", url, headers: admin, payload });
+
+  it("queues each paid order with the customer's details and the product's buy link", async () => {
+    const f = await paidFulfillment();
+    const queue = (await app.inject({ method: "GET", url: "/admin/fulfillments", headers: admin })).json();
+    const item = queue.find((x: { id: string }) => x.id === f.id);
+    expect(item).toMatchObject({ status: FulfillmentStatus.AWAITING_APPROVAL });
+    expect(item.order.shippingAddress).toMatchObject({ name: "Test Buyer", line1: "1 Main St", postalCode: "78701" });
+    expect(item.order.email).toBe("buyer@example.com");
+    expect(item.items[0]).toMatchObject({ productName: "Test Order Lamp", quantity: 2 });
+    expect(item.supplierProduct.url).toBe("https://example.com/item/1");
+  });
+
+  it("records bought, shipped and delivered, and shows tracking to the customer", async () => {
+    const f = await paidFulfillment();
+    const bought = await post(`/admin/fulfillments/${f.id}/purchased`, { supplierOrderId: "AE-8123456789", costCents: 1150 });
+    expect(bought.json()).toMatchObject({ status: FulfillmentStatus.SUPPLIER_PAID, supplierOrderId: "AE-8123456789", actualCostCents: 1150 });
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: f.orderId } })).status).toBe(OrderStatus.FULFILLING);
+
+    const shipped = await post(`/admin/fulfillments/${f.id}/shipped`, { trackingNumber: "LP00123456789CN" });
+    expect(shipped.json()).toMatchObject({ status: FulfillmentStatus.SHIPPED, trackingNumber: "LP00123456789CN" });
+    expect(shipped.json().trackingUrl).toContain("LP00123456789CN");
+    const order = await prisma.order.findUniqueOrThrow({ where: { id: f.orderId } });
+    expect(order.status).toBe(OrderStatus.SHIPPED);
+    const pub = (await app.inject({ method: "GET", url: `/orders/checkout/${order.stripeCheckoutId}` })).json();
+    expect(pub.shipments).toEqual([{ trackingNumber: "LP00123456789CN", trackingUrl: expect.stringContaining("17track") }]);
+    expect(JSON.stringify(pub)).not.toMatch(/AE-8123456789|1150|supplier/i); // never leak what we paid or where
+
+    expect((await post(`/admin/fulfillments/${f.id}/delivered`)).json()).toMatchObject({ status: FulfillmentStatus.DELIVERED });
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: f.orderId } })).status).toBe(OrderStatus.DELIVERED);
+  });
+
+  it("rejects steps out of order, bad input and missing auth", async () => {
+    const f = await paidFulfillment();
+    expect((await post(`/admin/fulfillments/${f.id}/shipped`, { trackingNumber: "LP00123456789CN" })).statusCode).toBe(409);
+    expect((await post(`/admin/fulfillments/${f.id}/purchased`, { supplierOrderId: "" })).statusCode).toBe(400);
+    expect((await app.inject({ method: "POST", url: `/admin/fulfillments/${f.id}/purchased`, payload: { supplierOrderId: "X1" } })).statusCode).toBe(401);
+    await post(`/admin/fulfillments/${f.id}/purchased`, { supplierOrderId: "AE-1" });
+    expect((await post(`/admin/fulfillments/${f.id}/purchased`, { supplierOrderId: "AE-2" })).statusCode).toBe(409); // never bought twice
+  });
+
+  it("cancels an item that can't be bought, with a reason", async () => {
+    const f = await paidFulfillment();
+    const res = await post(`/admin/fulfillments/${f.id}/cancel`, { note: "Sold out everywhere; refund in Stripe" });
+    expect(res.json()).toMatchObject({ status: FulfillmentStatus.CANCELLED, note: "Sold out everywhere; refund in Stripe" });
   });
 });

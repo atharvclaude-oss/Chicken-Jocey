@@ -15,6 +15,7 @@ import { OrderService } from "./modules/orders/orders.service.ts";
 import { adminSourcingRoutes } from "./modules/sourcing/sourcing.routes.ts";
 import { SourcingService } from "./modules/sourcing/sourcing.service.ts";
 import type { SupplierRegistry } from "./modules/suppliers/supplier-adapter.ts";
+import type { OrderAlert } from "./modules/notifications/order-alerts.ts";
 
 export interface AppOptions {
   db: Db;
@@ -32,6 +33,8 @@ export interface AppOptions {
     webhookSecret?: string;
     suppliers: SupplierRegistry;
     siteUrl: string;
+    /** Emails the team when an order is paid. */
+    alert?: OrderAlert;
   };
 }
 
@@ -80,7 +83,7 @@ export async function buildApp({
   await app.register(productRoutes(new ProductService(db)));
   await app.register(roomRoutes(new RoomService(db)));
   await app.register(catalogueRoutes(new CatalogueService(db)));
-  const orders = payments && new OrderService(db, payments.stripe, payments.suppliers, payments.siteUrl);
+  const orders = payments && new OrderService(db, payments.stripe, payments.suppliers, payments.siteUrl, payments.alert);
   if (orders) {
     await app.register(orderRoutes(orders));
     if (payments.webhookSecret) await app.register(stripeWebhookRoutes(orders, payments.stripe, payments.webhookSecret));

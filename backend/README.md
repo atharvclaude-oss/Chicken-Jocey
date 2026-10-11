@@ -61,18 +61,63 @@ account is activated). Flow:
 ```
 POST /checkout {items:[{productId, quantity}]}   server prices it, order = PAYMENT_PENDING, returns Stripe Checkout URL
 Stripe -> POST /webhooks/stripe                   signature-checked; order = PAID, one fulfilment per supplier listing
-GET  /admin/fulfillments?status=AWAITING_APPROVAL ops queue (every supplier purchase needs a person's approval)
-POST /admin/fulfillments/:id/approve              re-checks live stock + price, then places the supplier order
-POST /admin/fulfillments/:id/tracking             pulls tracking; order = SHIPPED once every fulfilment ships
-GET  /orders/checkout/:sessionId                  confirmation page data (no supplier info)
+GET  /admin/fulfillments                         ops queue: every paid item, with the customer's address and buy link
+POST /admin/fulfillments/:id/purchased            bought by hand: {supplierOrderId, costCents?}; order = FULFILLING
+POST /admin/fulfillments/:id/shipped              {trackingNumber, trackingUrl?}; order = SHIPPED once every item ships
+POST /admin/fulfillments/:id/delivered            order = DELIVERED once every item arrives
+POST /admin/fulfillments/:id/cancel               {note}: can't be bought (refund in Stripe)
+POST /admin/fulfillments/:id/approve, /tracking   automatic suppliers only (unused while buying by hand)
+GET  /orders/checkout/:sessionId                  confirmation page data, incl. tracking (no supplier info)
 ```
+
+### Manual purchasing (current)
+
+Every order is bought by hand on AliExpress, shipping straight to the customer:
+
+1. The customer pays through Stripe; the webhook marks the order paid and queues each item.
+2. The team opens **/admin/orders** on the site (password: `ADMIN_PASSWORD` in
+   `frontend/.env.local`, which also holds this API's `ADMIN_API_KEY`). Each item shows the
+   customer's name, address, phone and email (with a copy button), what they bought and paid,
+   and a "Find on AliExpress" link.
+3. Buy the matching listing on AliExpress with the customer's address, then **Mark bought** with
+   the AliExpress order number and what it cost (the page shows the margin).
+4. When the seller ships, **Mark shipped** with the tracking number: the customer sees it on
+   their order page (they're told to bookmark it). Then **Mark delivered**.
+5. Can't buy it? **Cancel this item** with a reason, then refund the customer in Stripe.
+
+New-order emails: set `RESEND_API_KEY` (free resend.com account) and `ORDER_ALERT_EMAIL` in
+`.env` and every paid order emails a summary with a link to /admin/orders (once per order,
+never blocking the payment). Without a verified domain, Resend only delivers to the email on
+your Resend account.
+
+### Stock checks
+
+```
+npm run check-stock                       # report: in stock, newly out, back in, price changes, thin margins
+npm run check-stock -- --apply            # also update the site (unavailable products can't be bought)
+npm run check-stock -- --apply --reprice  # also raise prices that fell under the 2x floor
+```
+
+Read-only: it never orders anything. Sources: the AliExpress Affiliate API for products with an
+exact AliExpress item link (once `ALIEXPRESS_APP_KEY` / `ALIEXPRESS_APP_SECRET` are set), else
+CJ's API (`CJ_API_KEY`) for the same product, which shows whether it's still made and sold but
+not a specific AliExpress seller's stock. The report is also written to `data/stock-report.md`.
+`--apply` updates `data/cj-variants.tsv` and `frontend/services/lamp-offers.ts` (keeping retail
+prices, delivery set to the AliExpress window) and reseeds. Retail prices only change with
+`--reprice`.
+
+Products route here through `data/product-sourcing.tsv`: `ALIEXPRESS` + `search` rows (an
+AliExpress search for the product; swap in an exact item link when you have one). The server
+uses `ManualPurchaseAdapter`, which never calls a supplier API. CJdropshipping is disconnected:
+its code is kept (`src/modules/suppliers/cj*.ts`, `scripts/fetch-cj.ts`) but not wired in, and
+`CJ_API_KEY` is commented out in `.env`.
 
 - The client never sends prices. Paying happens only via the webhook, never the success page.
 - Approval stops without spending if the supplier is out of stock, the cost rose more
   than 10%, the margin fell under the floor, or the address is unusable.
 - Items with no orderable supplier listing land in `MANUAL_REVIEW`.
-- Suppliers sit behind `SupplierAdapter` (`src/modules/suppliers`). Only a mock exists
-  until the Alibaba/AliExpress accounts get dropshipping API access.
+- Suppliers sit behind `SupplierAdapter` (`src/modules/suppliers`): `ManualPurchaseAdapter`
+  (in use), the CJ adapter (disconnected) and a mock for tests.
 
 Local webhooks: install the Stripe CLI, then
 `stripe listen --forward-to localhost:4000/webhooks/stripe` and put the `whsec_...` it
@@ -132,7 +177,7 @@ To finish a product: open the link, pick the exact item, add it to
 `sourcing.tsv` with its cost, set the row in `product-sourcing.tsv` to
 `listing` with that `sku`, then re-seed.
 
-## CJdropshipping import (the lamp catalogue)
+## CJdropshipping import (disconnected; kept for reference)
 
 CJ products are imported through CJ's official API (`CJ_API_KEY` in `.env`);
 CJ's website is bot-protected, so nothing is scraped.

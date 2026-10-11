@@ -48,6 +48,17 @@ export function stripeWebhookRoutes(orders: OrderService, stripe: Stripe, webhoo
 
 const statusQuery = z.object({ status: z.enum(FulfillmentStatus).optional() });
 
+const purchasedBody = z.object({
+  supplierOrderId: z.string().trim().min(1).max(100),
+  costCents: z.number().int().min(0).max(10_000_000).optional(),
+  note: z.string().max(500).optional(),
+});
+const shippedBody = z.object({
+  trackingNumber: z.string().trim().min(3).max(100),
+  trackingUrl: z.string().url().max(500).optional(),
+});
+const cancelBody = z.object({ note: z.string().trim().min(1).max(500) });
+
 /** Ops queue: every supplier purchase waits here for a person to approve it. */
 export function adminOrderRoutes(orders: OrderService, adminKey: string) {
   return async (app: FastifyInstance) => {
@@ -64,6 +75,23 @@ export function adminOrderRoutes(orders: OrderService, adminKey: string) {
 
     app.post<{ Params: { id: string } }>("/fulfillments/:id/tracking", { config }, async (req) => {
       return await orders.refreshTracking(req.params.id);
+    });
+
+    // Manual purchasing: record each step after buying on AliExpress by hand.
+    app.post<{ Params: { id: string } }>("/fulfillments/:id/purchased", { config }, async (req) => {
+      return await orders.markPurchased(req.params.id, purchasedBody.parse(req.body));
+    });
+
+    app.post<{ Params: { id: string } }>("/fulfillments/:id/shipped", { config }, async (req) => {
+      return await orders.markShipped(req.params.id, shippedBody.parse(req.body));
+    });
+
+    app.post<{ Params: { id: string } }>("/fulfillments/:id/delivered", { config }, async (req) => {
+      return await orders.markDelivered(req.params.id);
+    });
+
+    app.post<{ Params: { id: string } }>("/fulfillments/:id/cancel", { config }, async (req) => {
+      return await orders.cancelFulfillment(req.params.id, cancelBody.parse(req.body).note);
     });
   };
 }
